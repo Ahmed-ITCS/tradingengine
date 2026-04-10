@@ -1,0 +1,55 @@
+"""
+EvoTrade AI - Central Configuration
+"""
+import os
+from pydantic_settings import BaseSettings
+from typing import Optional
+
+
+class Settings(BaseSettings):
+    # App
+    APP_NAME: str = "EvoTrade AI"
+    VERSION: str = "1.0.0"
+    DEBUG: bool = True
+
+    # LLM Provider: "openai" | "anthropic" | "gemini" | "ollama" | "mock"
+    LLM_PROVIDER: str = "mock"
+    OPENAI_API_KEY: Optional[str] = None
+    ANTHROPIC_API_KEY: Optional[str] = None
+    GEMINI_API_KEY: Optional[str] = None          # Google Gemini
+    GEMINI_MODEL: str = "gemini-2.0-flash"        # or gemini-1.5-pro
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "llama3"
+    LLM_MODEL: str = "claude-sonnet-4-20250514"   # used by Anthropic
+
+    # Exchange
+    EXCHANGE: str = "binance"
+    BINANCE_API_KEY: Optional[str] = None
+    BINANCE_SECRET: Optional[str] = None
+    USE_TESTNET: bool = True
+    PAPER_TRADING: bool = True
+
+    # Trading Defaults
+    DEFAULT_SYMBOL: str = "BTC/USDT"
+    DEFAULT_TIMEFRAME: str = "1h"
+    MAX_RISK_PER_TRADE: float = 0.02      # 2% per trade
+    MAX_DRAWDOWN_KILL: float = 0.10       # 10% global drawdown kill
+    INITIAL_CAPITAL: float = 10000.0
+
+    # Engine
+    ENGINE_INTERVAL_SECONDS: int = 30
+    EVOLUTION_INTERVAL_HOURS: int = 6
+
+    # Database
+    DB_PATH: str = "data/evotrade.duckdb"
+
+    # Logging
+    LOG_LEVEL: str = "INFO"
+    LOG_FILE: str = "data/evotrade.log"
+
+    class Config:
+        env_file = ".env"
+        extra = "ignore"
+
+
+settings = Settings()

@@ -1,0 +1,581 @@
+2026-04-10 12:09:19,721 [evotrade.main] INFO: EvoTrade AI FastAPI started ✅
+2026-04-10 12:14:55,948 [evotrade.main] INFO: EvoTrade AI FastAPI started ✅
+2026-04-10 12:15:37,957 [apscheduler.scheduler] INFO: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-10 12:15:37,958 [apscheduler.scheduler] INFO: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-10 12:15:37,958 [apscheduler.scheduler] INFO: Added job "TradingEngine._trading_cycle" to job store "default"
+2026-04-10 12:15:37,959 [apscheduler.scheduler] INFO: Added job "TradingEngine._evolution_cycle" to job store "default"
+2026-04-10 12:15:37,959 [apscheduler.scheduler] INFO: Scheduler started
+2026-04-10 12:16:07,962 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:16:37 PKT)" (scheduled at 2026-04-10 12:16:07.956898+05:00)
+2026-04-10 12:16:08,609 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:16:37 PKT)" executed successfully
+2026-04-10 12:16:37,963 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:17:07 PKT)" (scheduled at 2026-04-10 12:16:37.956898+05:00)
+2026-04-10 12:16:38,679 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:17:07 PKT)" executed successfully
+2026-04-10 12:18:16,665 [evotrade.main] INFO: EvoTrade AI FastAPI started ✅
+2026-04-10 12:18:41,247 [apscheduler.scheduler] INFO: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-10 12:18:41,248 [apscheduler.scheduler] INFO: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-10 12:18:41,248 [apscheduler.scheduler] INFO: Added job "TradingEngine._trading_cycle" to job store "default"
+2026-04-10 12:18:41,248 [apscheduler.scheduler] INFO: Added job "TradingEngine._evolution_cycle" to job store "default"
+2026-04-10 12:18:41,248 [apscheduler.scheduler] INFO: Scheduler started
+2026-04-10 12:19:11,254 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:19:41 PKT)" (scheduled at 2026-04-10 12:19:11.247207+05:00)
+2026-04-10 12:19:14,316 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:19:41 PKT)" executed successfully
+2026-04-10 12:19:41,259 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:20:11 PKT)" (scheduled at 2026-04-10 12:19:41.247207+05:00)
+2026-04-10 12:19:44,555 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:20:11 PKT)" executed successfully
+2026-04-10 12:20:11,253 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:20:41 PKT)" (scheduled at 2026-04-10 12:20:11.247207+05:00)
+2026-04-10 12:20:14,917 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:20:41 PKT)" executed successfully
+2026-04-10 12:20:41,260 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:21:11 PKT)" (scheduled at 2026-04-10 12:20:41.247207+05:00)
+2026-04-10 12:20:57,183 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:21:11 PKT)" executed successfully
+2026-04-10 12:21:11,256 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:21:41 PKT)" (scheduled at 2026-04-10 12:21:11.247207+05:00)
+2026-04-10 12:21:22,824 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:21:41 PKT)" executed successfully
+2026-04-10 12:21:41,255 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:22:11 PKT)" (scheduled at 2026-04-10 12:21:41.247207+05:00)
+2026-04-10 12:21:46,298 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:22:11 PKT)" executed successfully
+2026-04-10 12:22:11,252 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:22:41 PKT)" (scheduled at 2026-04-10 12:22:11.247207+05:00)
+2026-04-10 12:22:15,125 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:22:41 PKT)" executed successfully
+2026-04-10 12:22:41,256 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:23:11 PKT)" (scheduled at 2026-04-10 12:22:41.247207+05:00)
+2026-04-10 12:22:45,374 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:23:11 PKT)" executed successfully
+2026-04-10 12:23:11,252 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:23:41 PKT)" (scheduled at 2026-04-10 12:23:11.247207+05:00)
+2026-04-10 12:23:16,510 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:23:41 PKT)" executed successfully
+2026-04-10 12:23:41,251 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:24:11 PKT)" (scheduled at 2026-04-10 12:23:41.247207+05:00)
+2026-04-10 12:23:45,196 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:24:11 PKT)" executed successfully
+2026-04-10 12:24:11,252 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:24:41 PKT)" (scheduled at 2026-04-10 12:24:11.247207+05:00)
+2026-04-10 12:24:15,970 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:24:41 PKT)" executed successfully
+2026-04-10 12:24:41,252 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:25:11 PKT)" (scheduled at 2026-04-10 12:24:41.247207+05:00)
+2026-04-10 12:24:45,854 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:25:11 PKT)" executed successfully
+2026-04-10 12:25:11,254 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:25:41 PKT)" (scheduled at 2026-04-10 12:25:11.247207+05:00)
+2026-04-10 12:25:15,884 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:25:41 PKT)" executed successfully
+2026-04-10 12:25:33,105 [evotrade.main] INFO: EvoTrade AI FastAPI started ✅
+2026-04-10 12:26:07,809 [apscheduler.scheduler] INFO: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-10 12:26:07,810 [apscheduler.scheduler] INFO: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-10 12:26:07,811 [apscheduler.scheduler] INFO: Added job "TradingEngine._trading_cycle" to job store "default"
+2026-04-10 12:26:07,811 [apscheduler.scheduler] INFO: Added job "TradingEngine._evolution_cycle" to job store "default"
+2026-04-10 12:26:07,811 [apscheduler.scheduler] INFO: Scheduler started
+2026-04-10 12:26:37,814 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:26:37 PKT)" (scheduled at 2026-04-10 12:26:37.809338+05:00)
+2026-04-10 12:26:41,955 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:27:07 PKT)" executed successfully
+2026-04-10 12:27:07,816 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:27:37 PKT)" (scheduled at 2026-04-10 12:27:07.809338+05:00)
+2026-04-10 12:27:11,551 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:27:37 PKT)" executed successfully
+2026-04-10 12:27:37,814 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:28:07 PKT)" (scheduled at 2026-04-10 12:27:37.809338+05:00)
+2026-04-10 12:27:42,119 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:28:07 PKT)" executed successfully
+2026-04-10 12:28:07,819 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:28:37 PKT)" (scheduled at 2026-04-10 12:28:07.809338+05:00)
+2026-04-10 12:28:12,114 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:28:37 PKT)" executed successfully
+2026-04-10 12:28:37,815 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:29:07 PKT)" (scheduled at 2026-04-10 12:28:37.809338+05:00)
+2026-04-10 12:28:41,929 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:29:07 PKT)" executed successfully
+2026-04-10 12:29:07,810 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:29:37 PKT)" (scheduled at 2026-04-10 12:29:07.809338+05:00)
+2026-04-10 12:29:11,736 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:29:37 PKT)" executed successfully
+2026-04-10 12:29:37,816 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:30:07 PKT)" (scheduled at 2026-04-10 12:29:37.809338+05:00)
+2026-04-10 12:29:42,375 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:30:07 PKT)" executed successfully
+2026-04-10 12:30:07,816 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:30:37 PKT)" (scheduled at 2026-04-10 12:30:07.809338+05:00)
+2026-04-10 12:30:12,538 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:30:37 PKT)" executed successfully
+2026-04-10 12:30:38,855 [evotrade.main] INFO: EvoTrade AI FastAPI started ✅
+2026-04-10 12:30:55,172 [apscheduler.scheduler] INFO: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-10 12:30:55,173 [apscheduler.scheduler] INFO: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-10 12:30:55,174 [apscheduler.scheduler] INFO: Added job "TradingEngine._trading_cycle" to job store "default"
+2026-04-10 12:30:55,174 [apscheduler.scheduler] INFO: Added job "TradingEngine._evolution_cycle" to job store "default"
+2026-04-10 12:30:55,174 [apscheduler.scheduler] INFO: Scheduler started
+2026-04-10 12:31:25,178 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:31:55 PKT)" (scheduled at 2026-04-10 12:31:25.171928+05:00)
+2026-04-10 12:31:31,421 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:31:55 PKT)" executed successfully
+2026-04-10 12:31:55,176 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:32:25 PKT)" (scheduled at 2026-04-10 12:31:55.171928+05:00)
+2026-04-10 12:31:58,565 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:32:25 PKT)" executed successfully
+2026-04-10 12:32:25,177 [apscheduler.executors.default] INFO: Running job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:32:55 PKT)" (scheduled at 2026-04-10 12:32:25.171928+05:00)
+2026-04-10 12:32:29,380 [apscheduler.executors.default] INFO: Job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:32:55 PKT)" executed successfully
+2026-04-10 12:32:40,919 [apscheduler.scheduler] INFO: Scheduler has been shut down
+2026-04-10 12:32:47,099 [apscheduler.scheduler] INFO: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-10 12:32:47,100 [apscheduler.scheduler] INFO: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-10 12:32:47,101 [apscheduler.scheduler] INFO: Added job "TradingEngine._trading_cycle" to job store "default"
+2026-04-10 12:32:47,101 [apscheduler.scheduler] INFO: Added job "TradingEngine._evolution_cycle" to job store "default"
+2026-04-10 12:32:47,101 [apscheduler.scheduler] INFO: Scheduler started
+2026-04-10 12:33:17,101 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:33:17 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:33:47,104 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:33:47 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:34:17,106 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:34:17 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:34:47,113 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:34:47 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:35:17,103 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:35:17 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:35:47,100 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:35:47 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:36:17,103 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:36:17 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:36:24,700 [apscheduler.scheduler] INFO: Scheduler has been shut down
+2026-04-10 12:36:27,883 [apscheduler.scheduler] INFO: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-10 12:36:27,883 [apscheduler.scheduler] INFO: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-10 12:36:27,884 [apscheduler.scheduler] INFO: Added job "TradingEngine._trading_cycle" to job store "default"
+2026-04-10 12:36:27,884 [apscheduler.scheduler] INFO: Added job "TradingEngine._evolution_cycle" to job store "default"
+2026-04-10 12:36:27,884 [apscheduler.scheduler] INFO: Scheduler started
+2026-04-10 12:36:57,917 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:36:57 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:37:27,887 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:37:27 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:37:57,901 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:37:57 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:38:27,888 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:38:27 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:38:57,884 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:38:57 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:39:27,883 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:39:27 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:39:57,884 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:39:57 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:40:27,886 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:40:27 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:40:57,888 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:40:57 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:41:27,886 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:41:27 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:41:57,887 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:41:57 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:42:27,887 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:42:27 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:42:57,887 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:42:57 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:43:27,884 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:43:27 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:43:57,882 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:43:57 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:44:27,887 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:44:27 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:44:57,886 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:44:57 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:45:27,887 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:45:27 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:45:57,886 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:45:57 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:46:27,887 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:46:27 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:46:57,885 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:46:57 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:47:27,887 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:47:27 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:47:57,890 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:47:57 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:48:27,888 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:48:27 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:48:57,885 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:48:57 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:49:27,889 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:49:27 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:49:57,887 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:49:57 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:50:27,883 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:50:27 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 12:50:57,901 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:50:57 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 13:40:33,879 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 12:51:27 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 14:30:16,851 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 13:40:57 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 14:30:28,079 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 14:30:27 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 14:30:58,107 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 14:30:57 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+2026-04-10 14:31:27,902 [apscheduler.scheduler] ERROR: Error submitting job "TradingEngine._trading_cycle (trigger: interval[0:00:30], next run at: 2026-04-10 14:31:27 PKT)" to executor "default"
+Traceback (most recent call last):
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/schedulers/base.py", line 1195, in _process_jobs
+    executor.submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/base.py", line 74, in submit_job
+    self._do_submit_job(job, run_times)
+  File "/Users/ahmed/Downloads/evotrade_final/venv/lib/python3.11/site-packages/apscheduler/executors/pool.py", line 27, in _do_submit_job
+    f = self._pool.submit(
+        ^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/concurrent/futures/thread.py", line 167, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
