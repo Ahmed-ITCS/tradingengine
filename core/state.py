@@ -304,6 +304,7 @@ class TradingState:
                 "closed_trades_count": len(self.closed_trades),
                 "last_signal": self.last_decision.signal.value if self.last_decision else "NONE",
                 "last_confidence": self.last_decision.confidence if self.last_decision else 0.0,
+                "last_reasoning": (self.last_decision.reasoning or "")[:800] if self.last_decision else "",
                 "min_trade_confidence": self.effective_min_trade_confidence(),
             }
 

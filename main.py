@@ -54,7 +54,8 @@ class ConnectionManager:
         await ws.accept()
         async with self._lock:
             self.active.append(ws)
-        logger.debug(f"WS connected. Total: {len(self.active)}")
+        peer = ws.scope.get("client")
+        logger.info("WebSocket accepted from %s (total clients: %s)", peer, len(self.active))
 
     async def disconnect(self, ws: WebSocket):
         async with self._lock:
@@ -78,21 +79,25 @@ manager = ConnectionManager()
 
 async def broadcast_loop():
     """Drain the state broadcast queue and push to all WS clients."""
-    while True:
-        try:
-            drained = 0
-            while not trading_state.broadcast_queue.empty() and drained < 20:
-                item = trading_state.broadcast_queue.get_nowait()
-                await manager.broadcast(item)
-                drained += 1
-        except Exception:
-            pass
-        await asyncio.sleep(0.3)
+    try:
+        while True:
+            try:
+                drained = 0
+                while not trading_state.broadcast_queue.empty() and drained < 20:
+                    item = trading_state.broadcast_queue.get_nowait()
+                    await manager.broadcast(item)
+                    drained += 1
+            except Exception as e:
+                logger.debug("broadcast_loop drain: %s", e)
+            await asyncio.sleep(0.3)
+    except asyncio.CancelledError:
+        logger.info("broadcast_loop stopped (app shutdown)")
+        raise
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    asyncio.create_task(broadcast_loop())
+    app.state.broadcast_task = asyncio.create_task(broadcast_loop())
     logger.info("EvoTrade AI FastAPI started ✅")
     if settings.AUTO_START_ENGINE:
         trading_state.symbol = settings.DEFAULT_SYMBOL
@@ -104,6 +109,13 @@ async def lifespan(app: FastAPI):
         except Exception:
             logger.exception("AUTO_START_ENGINE: failed to start trading engine")
     yield
+    t = getattr(app.state, "broadcast_task", None)
+    if t and not t.done():
+        t.cancel()
+        try:
+            await t
+        except asyncio.CancelledError:
+            pass
     try:
         engine.stop()
     except Exception:
@@ -391,14 +403,29 @@ def llm_providers():
 
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
+    """
+    Browser connects to the same host as the page: ws(s)://<host>/ws
+
+    Common failures:
+    - Reverse proxy without Upgrade headers (see deploy/nginx-ws-snippet.conf).
+    - uvicorn --workers > 1: each worker has its own WS list; use --workers 1 for live fan-out.
+    """
     await manager.connect(ws)
     try:
-        # Send full snapshot on connect
-        await ws.send_text(json.dumps({
-            "type": "snapshot",
-            "payload": trading_state.to_dashboard_dict(),
-            "ts": datetime.utcnow().isoformat(),
-        }, default=str))
+        try:
+            snap = {
+                "type": "snapshot",
+                "payload": trading_state.to_dashboard_dict(),
+                "ts": datetime.utcnow().isoformat(),
+            }
+            await ws.send_text(json.dumps(snap, default=str))
+        except Exception as e:
+            logger.exception("WebSocket: snapshot serialization/send failed: %s", e)
+            await ws.send_text(json.dumps({
+                "type": "snapshot",
+                "payload": {"status": "error", "detail": "snapshot failed — check server logs"},
+                "ts": datetime.utcnow().isoformat(),
+            }))
 
         while True:
             try:
@@ -406,23 +433,22 @@ async def websocket_endpoint(ws: WebSocket):
                 if data == "ping":
                     await ws.send_text(json.dumps({"type": "pong", "ts": datetime.utcnow().isoformat()}))
                 elif data.startswith("{"):
-                    # Handle JSON commands from frontend
                     cmd = json.loads(data)
                     if cmd.get("type") == "subscribe":
                         pass  # Future: per-topic subscriptions
             except asyncio.TimeoutError:
-                # Heartbeat with fresh state
                 await ws.send_text(json.dumps({
                     "type": "heartbeat",
                     "payload": trading_state.to_dashboard_dict(),
                     "ts": datetime.utcnow().isoformat(),
                 }, default=str))
     except WebSocketDisconnect:
-        pass
+        logger.info("WebSocket client disconnected normally")
     except Exception as e:
-        logger.debug(f"WS error: {e}")
+        logger.warning("WebSocket closed with error: %s", e, exc_info=True)
     finally:
         await manager.disconnect(ws)
+        logger.info("WebSocket cleanup done (remaining clients: %s)", len(manager.active))
 
 
 # ── Health ────────────────────────────────────────────────────────────────────
@@ -448,5 +474,5 @@ if __name__ == "__main__":
     print("  Open: http://localhost:8000")
     print("  API:  http://localhost:8000/docs")
     print("=" * 60)
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False, log_level="info")
+    uvicorn.run("main:app", host="0.0.0.0", port=8009, reload=False, log_level="info")
 

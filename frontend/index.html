@@ -481,8 +481,9 @@ input[type="range"]::-webkit-slider-thumb {
   padding: 10px 12px;
   margin-top: 8px;
   border-left: 2px solid var(--accent);
-  max-height: 80px;
+  max-height: 120px;
   overflow-y: auto;
+  white-space: pre-wrap;
 }
 
 /* ── CHART AREA ──────────────────────────────────────────────────── */
@@ -1146,6 +1147,7 @@ input[type="range"]::-webkit-slider-thumb {
                 <option>DataAgent</option><option>NewsAgent</option>
                 <option>DecisionAgent</option><option>ExecutionAgent</option>
                 <option>EvolutionAgent</option><option>Engine</option>
+                <option>LangGraph</option>
               </select>
               <button class="btn-sm btn-sm-close" onclick="clearLogs()">Clear</button>
             </div>
@@ -1361,37 +1363,70 @@ let refreshTimer = null;
 
 const agentColors = {
   DataAgent: '#00d4ff', NewsAgent: '#a78bfa', DecisionAgent: '#fbbf24',
-  ExecutionAgent: '#00e5a0', EvolutionAgent: '#fb923c', Engine: '#64748b'
+  ExecutionAgent: '#00e5a0', EvolutionAgent: '#fb923c', Engine: '#64748b', LangGraph: '#94a3b8',
 };
 const agentIcons = {
   DataAgent: '📊', NewsAgent: '📰', DecisionAgent: '🧠',
-  ExecutionAgent: '⚡', EvolutionAgent: '🧬', Engine: '🚀'
+  ExecutionAgent: '⚡', EvolutionAgent: '🧬', Engine: '🚀', LangGraph: '🕸️',
 };
 
 // ── WEBSOCKET ────────────────────────────────────────────────────────────────
+let wsBackoffMs = 3000;
+
 function connectWS() {
   try {
     ws = new WebSocket(WS_URL);
     ws.onopen = () => {
-      setWS(true);
-      clearInterval(wsReconnectTimer);
+      wsBackoffMs = 3000;
+      setWS(true, 'WebSocket connected (live log stream)');
+      clearTimeout(wsReconnectTimer);
       pingLoop();
     };
-    ws.onclose = () => {
-      setWS(false);
-      wsReconnectTimer = setTimeout(connectWS, 3000);
+    ws.onclose = (ev) => {
+      const hint = wsCloseHint(ev.code, ev.reason);
+      setWS(false, hint);
+      clearTimeout(wsReconnectTimer);
+      wsReconnectTimer = setTimeout(connectWS, wsBackoffMs);
+      wsBackoffMs = Math.min(wsBackoffMs * 2, 30000);
     };
-    ws.onerror = () => ws.close();
-    ws.onmessage = (e) => handleWSMessage(JSON.parse(e.data));
+    ws.onerror = () => {
+      setWS(false, 'WebSocket error — see browser devtools / nginx Upgrade headers');
+      try { ws.close(); } catch (_) {}
+    };
+    ws.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data);
+        handleWSMessage(msg);
+      } catch (err) {
+        console.warn('WS bad JSON:', err, e.data?.slice?.(0, 120));
+      }
+    };
   } catch(err) {
     console.warn('WS connect failed:', err);
-    setTimeout(connectWS, 3000);
+    setTimeout(connectWS, wsBackoffMs);
   }
 }
 
-function setWS(ok) {
+function wsCloseHint(code, reason) {
+  const r = (reason && String(reason).trim()) || '';
+  const codes = {
+    1000: 'Normal closure',
+    1001: 'Going away',
+    1006: 'Abnormal (no close frame) — often proxy/firewall; nginx needs Connection upgrade',
+    1011: 'Server error',
+    1012: 'Service restart',
+    1013: 'Try again later',
+    1015: 'TLS handshake failure',
+  };
+  const base = codes[code] || `Closed code ${code}`;
+  return r ? `${base}: ${r}` : base;
+}
+
+function setWS(ok, title) {
   const el = document.getElementById('ws-status');
+  if (!el) return;
   el.className = ok ? 'connected' : 'disconnected';
+  el.title = title || (ok ? 'Connected' : 'Disconnected');
 }
 
 let pingTimer;
@@ -1402,6 +1437,8 @@ function pingLoop() {
 
 function handleWSMessage(msg) {
   switch (msg.type) {
+    case 'pong':
+      break;
     case 'snapshot':
     case 'heartbeat':
       updateDashboardFromPayload(msg.payload || msg);
@@ -1568,8 +1605,17 @@ async function fetchStrategies() {
 
 async function fetchLogs() {
   try {
-    const d = await api('/api/logs?limit=150');
+    const d = await api('/api/logs?limit=300');
     renderSysLogs(d);
+    // Agent Minds used to rely only on WebSocket; hydrate from the same API so it works
+    // behind proxies, after refresh, or when the engine was auto-started without clicking Start.
+    allLogs = (d || []).map(l => ({
+      agent: l.agent || 'Engine',
+      message: l.message || '',
+      level: l.level || 'info',
+      timestamp: l.timestamp || l.ts || '',
+    }));
+    renderMindsLog();
   } catch(e) {}
 }
 
@@ -1613,6 +1659,8 @@ function updateDashboardFromPayload(d) {
   const statusText = document.getElementById('engine-status-text');
   if (dot) { dot.className = `status-dot ${status}`; }
   if (statusText) statusText.textContent = status.toUpperCase();
+  if (status === 'running' || status === 'evolving') setEngineUI(true);
+  else setEngineUI(false);
 
   // Signal
   const sig = d.last_signal || 'NONE';
@@ -1624,6 +1672,9 @@ function updateDashboardFromPayload(d) {
   }
   setText('sig-confidence', conf > 0 ? `${(conf*100).toFixed(0)}%` : '—');
   setColor('sig-confidence', conf - 0.5);
+
+  const reason = d.last_reasoning || '';
+  setText('sig-reasoning', reason ? reason : (sig !== 'NONE' ? '—' : 'Start the engine to see AI reasoning here.'));
 
   setText('top-symbol', d.symbol || 'BTC/USDT');
 
@@ -1930,7 +1981,11 @@ function renderMindsLog() {
   const filter = document.getElementById('agent-filter')?.value || '';
 
   const logs = filter ? allLogs.filter(l => l.agent === filter) : allLogs;
-  el.innerHTML = logs.slice(0, 100).map(l => {
+  if (!logs.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:24px"><div class="icon">🧠</div>No agent messages yet. Start the engine (or wait for the next poll). WebSocket live stream is optional.</div>';
+    return;
+  }
+  el.innerHTML = logs.slice(0, 200).map(l => {
     const icon = agentIcons[l.agent] || '•';
     const time = fmtTime(l.timestamp);
     return `
@@ -1948,7 +2003,7 @@ function renderSysLogs(logs) {
   if (!el || !logs) return;
   el.innerHTML = logs.map(l => `
     <div class="log-entry">
-      <span class="log-time">${fmtTime(l.ts)}</span>
+      <span class="log-time">${fmtTime(l.timestamp || l.ts)}</span>
       <span class="log-agent"><span class="agent-tag agent-${l.agent}">${l.agent.replace('Agent','')}</span></span>
       <span class="log-msg ${l.level}">${escHtml(l.message)}</span>
     </div>
@@ -1971,6 +2026,7 @@ function switchTab(tab) {
   if (tab === 'trades') renderEquityCurve();
   if (tab === 'dashboard') renderChart();
   if (tab === 'analytics') { fetchAnalytics(); }
+  if (tab === 'minds') { fetchLogs(); }
 }
 
 // Proper tab switching by index
@@ -2268,10 +2324,13 @@ window.addEventListener('load', () => {
   onLLMChange(); // set initial hint
   connectWS();
   fetchStatus();
+  fetchLogs();
+  fetchDecisions();
+  fetchIndicators();
   // Initial chart render after small delay
   setTimeout(() => { renderChart(); renderEquityCurve(); }, 500);
-  // Periodic refresh even without engine
-  setInterval(fetchStatus, 30000);
+  // Periodic refresh even without engine (covers AUTO_START_ENGINE without clicking Start)
+  setInterval(() => { fetchStatus(); fetchLogs(); fetchDecisions(); }, 30000);
 });
 </script>
 </body>
