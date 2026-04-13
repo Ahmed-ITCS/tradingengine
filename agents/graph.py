@@ -224,12 +224,14 @@ def node_finalize(state: TradingGraphState) -> TradingGraphState:
         "equity": trading_state.portfolio.equity + trading_state.portfolio.unrealized_pnl
     })
     nodes_run = state.get("completed_nodes", [])
-    trading_state.add_log(
-        "LangGraph",
-        f"[Cycle Complete] Nodes: {' → '.join(nodes_run)} | "
-        f"Error: {state.get('error', 'None')}",
-        level="success" if not state.get("error") else "warn"
-    )
+    err = state.get("error")
+    if err:
+        msg = f"[Cycle Complete] Nodes: {' → '.join(nodes_run)} | Error: {err}"
+        lvl = "warn"
+    else:
+        msg = f"[Cycle Complete] Nodes: {' → '.join(nodes_run)} | Status: OK"
+        lvl = "success"
+    trading_state.add_log("LangGraph", msg, level=lvl)
     return {**state, "completed_nodes": nodes_run + ["finalize"]}
 
 

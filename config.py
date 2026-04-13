@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     INITIAL_CAPITAL: float = 10000.0
 
     # Execution gate (graph + execution agent). Override via .env without code edits.
-    MIN_TRADE_CONFIDENCE: float = 0.55
+    MIN_TRADE_CONFIDENCE: float = 0.10
     # Non-paper: human_review auto-approves at or above this confidence.
     LIVE_AUTO_APPROVE_CONFIDENCE: float = 0.80
 

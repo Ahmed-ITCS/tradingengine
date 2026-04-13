@@ -89,7 +89,7 @@ Open **http://localhost:8000** in your browser.
 
 - Configurable max risk per trade (default 2%)
 - Global drawdown kill-switch (default 10%)
-- Confidence threshold (only executes ≥55% confidence)
+- Confidence threshold (only executes ≥10% confidence)
 - No duplicate positions per symbol
 
 ## 🔧 Configuration

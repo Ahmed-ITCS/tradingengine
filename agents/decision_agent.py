@@ -36,7 +36,7 @@ def build_decision_prompt(
     sentiment: Dict,
     portfolio: Dict,
     active_strategy: Optional[str] = None,
-    execution_confidence_floor: float = 0.55,
+    execution_confidence_floor: float = 0.10,
 ) -> str:
     return f"""Make a trading decision for {symbol}.
 

@@ -87,39 +87,63 @@ def _generate_synthetic_ohlcv(symbol: str, timeframe: str, limit: int) -> pd.Dat
     return df
 
 
+def _register_pandas_ta_accessor() -> None:
+    """Import pandas-ta or community fork; registers ``DataFrame.ta`` as a side effect."""
+    try:
+        import pandas_ta  # noqa: F401
+    except ImportError:
+        import pandas_ta_classic  # noqa: F401
+
+
 def compute_indicators(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     """Compute comprehensive TA indicators using pandas-ta."""
+    used_manual = False
     try:
-        import pandas_ta  # noqa: F401 — side effect: registers DataFrame.ta
-
-        # Trend
-        df.ta.ema(length=20, append=True)
-        df.ta.ema(length=50, append=True)
-        df.ta.ema(length=200, append=True)
-        df.ta.sma(length=20, append=True)
-
-        # Momentum
-        df.ta.rsi(length=14, append=True)
-        df.ta.macd(fast=12, slow=26, signal=9, append=True)
-        df.ta.stoch(append=True)
-        df.ta.cci(length=20, append=True)
-
-        # Volatility
-        df.ta.bbands(length=20, std=2, append=True)
-        df.ta.atr(length=14, append=True)
-
-        # Volume
-        df.ta.obv(append=True)
-        df.ta.mfi(length=14, append=True)
-        df.ta.vwap(append=True)
-
-        # Additional
-        df.ta.adx(length=14, append=True)
-        df.ta.ichimoku(append=True)
-
-    except Exception as e:
-        trading_state.add_log("DataAgent", f"pandas-ta error: {e}, using manual indicators", level="warn")
+        _register_pandas_ta_accessor()
+    except ImportError:
+        trading_state.add_log(
+            "DataAgent",
+            "TA library missing — using manual indicators. Install in this same Python: "
+            "`pip install pandas-ta-classic` (or use the project `.venv` after `pip install -r requirements.txt`).",
+            level="warn",
+        )
         df = _compute_manual_indicators(df)
+        used_manual = True
+
+    if not used_manual:
+        try:
+            # Trend
+            df.ta.ema(length=20, append=True)
+            df.ta.ema(length=50, append=True)
+            df.ta.ema(length=200, append=True)
+            df.ta.sma(length=20, append=True)
+
+            # Momentum
+            df.ta.rsi(length=14, append=True)
+            df.ta.macd(fast=12, slow=26, signal=9, append=True)
+            df.ta.stoch(append=True)
+            df.ta.cci(length=20, append=True)
+
+            # Volatility
+            df.ta.bbands(length=20, std=2, append=True)
+            df.ta.atr(length=14, append=True)
+
+            # Volume
+            df.ta.obv(append=True)
+            df.ta.mfi(length=14, append=True)
+            df.ta.vwap(append=True)
+
+            # Additional
+            df.ta.adx(length=14, append=True)
+            df.ta.ichimoku(append=True)
+
+        except Exception as e:
+            trading_state.add_log(
+                "DataAgent",
+                f"pandas-ta computation error: {e}, using manual indicators",
+                level="warn",
+            )
+            df = _compute_manual_indicators(df)
 
     # Extract latest values as clean dict
     latest = df.iloc[-1]
