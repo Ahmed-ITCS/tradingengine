@@ -133,8 +133,42 @@ class TradingState:
         self.equity_curve: List[Dict] = []
         self.price_history: List[Dict] = []
 
+        # Adaptive min confidence (updated when ADAPTIVE_TRADE_CONFIDENCE is enabled)
+        self._dynamic_min_confidence: Optional[float] = None
+
         # WebSocket broadcast queue
         self.broadcast_queue: queue.Queue = queue.Queue(maxsize=500)
+
+    def effective_min_trade_confidence(self) -> float:
+        """
+        Minimum confidence required to route to execution.
+        Uses MIN_TRADE_CONFIDENCE from settings; optionally nudges each cycle from recent PnL.
+        """
+        from config import settings
+
+        base = float(settings.MIN_TRADE_CONFIDENCE)
+        if not settings.ADAPTIVE_TRADE_CONFIDENCE:
+            return base
+
+        with self._lock:
+            if self._dynamic_min_confidence is None:
+                self._dynamic_min_confidence = base
+            window = max(3, int(settings.ADAPTIVE_CONFIDENCE_WINDOW))
+            recent = list(self.closed_trades[-window:])
+            if len(recent) >= 3:
+                wins = sum(1 for t in recent if (t.pnl or 0) > 0)
+                wr = wins / len(recent)
+                step = float(settings.ADAPTIVE_CONFIDENCE_STEP)
+                cur = float(self._dynamic_min_confidence)
+                if wr < 0.35:
+                    cur = min(float(settings.ADAPTIVE_CONFIDENCE_MAX_CEIL), cur + step)
+                elif wr > 0.55:
+                    cur = max(float(settings.ADAPTIVE_CONFIDENCE_MIN_FLOOR), cur - step)
+                self._dynamic_min_confidence = cur
+            out = float(self._dynamic_min_confidence)
+            lo = float(settings.ADAPTIVE_CONFIDENCE_MIN_FLOOR)
+            hi = float(settings.ADAPTIVE_CONFIDENCE_MAX_CEIL)
+            return max(lo, min(hi, out))
 
     def add_log(self, agent: str, message: str, data: Optional[Dict] = None, level: str = "info"):
         with self._lock:
@@ -270,6 +304,7 @@ class TradingState:
                 "closed_trades_count": len(self.closed_trades),
                 "last_signal": self.last_decision.signal.value if self.last_decision else "NONE",
                 "last_confidence": self.last_decision.confidence if self.last_decision else 0.0,
+                "min_trade_confidence": self.effective_min_trade_confidence(),
             }
 
 

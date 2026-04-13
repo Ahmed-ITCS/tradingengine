@@ -108,10 +108,17 @@ def node_make_decision(state: TradingGraphState) -> TradingGraphState:
             portfolio_dict=portfolio_dict
         )
 
+        floor = trading_state.effective_min_trade_confidence()
         should_exec = (
             decision.signal != TradeSignal.HOLD
-            and decision.confidence >= 0.55
+            and decision.confidence >= floor
             and trading_state.portfolio.drawdown < settings.MAX_DRAWDOWN_KILL
+        )
+
+        trading_state.add_log(
+            "LangGraph",
+            f"[Node: DecisionAgent] Execute gate: min_conf={floor:.0%} "
+            f"(adaptive={settings.ADAPTIVE_TRADE_CONFIDENCE}) → should_execute={should_exec}",
         )
 
         return {
@@ -144,8 +151,8 @@ def node_human_review(state: TradingGraphState) -> TradingGraphState:
     confidence = decision.get("confidence", 0)
     signal = decision.get("signal", "HOLD")
 
-    # Auto-approve if confidence >= 0.8, otherwise would await human
-    auto_approve = confidence >= 0.80 or signal == "HOLD"
+    # Auto-approve at LIVE_AUTO_APPROVE_CONFIDENCE+ (non-paper path)
+    auto_approve = confidence >= settings.LIVE_AUTO_APPROVE_CONFIDENCE or signal == "HOLD"
 
     trading_state.add_log(
         "LangGraph",

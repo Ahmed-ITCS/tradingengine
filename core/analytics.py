@@ -4,10 +4,38 @@ Computes rolling performance metrics, Sharpe, Sortino, drawdown series,
 and generates report-ready data structures.
 """
 from __future__ import annotations
+import math
 import numpy as np
-import pandas as pd
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
+
+
+def _json_safe_float(x: float, *, default: float = 0.0, pos_cap: float = 999.0) -> float:
+    """JSON cannot represent nan/inf; normalize for API responses."""
+    try:
+        v = float(np.asarray(x).item()) if isinstance(x, (np.floating, np.ndarray)) else float(x)
+    except (TypeError, ValueError):
+        return default
+    if math.isnan(v):
+        return default
+    if math.isinf(v):
+        return pos_cap if v > 0 else -pos_cap
+    return v
+
+
+def _json_safe_tree(obj: Any) -> Any:
+    """Recursively replace non-finite floats so Starlette JSONResponse succeeds."""
+    if isinstance(obj, dict):
+        return {k: _json_safe_tree(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_json_safe_tree(v) for v in obj]
+    if isinstance(obj, bool):
+        return obj
+    if isinstance(obj, (int, np.integer)):
+        return int(obj)
+    if isinstance(obj, (float, np.floating)):
+        return _json_safe_float(obj)
+    return obj
 
 
 def compute_portfolio_metrics(
@@ -95,42 +123,43 @@ def compute_portfolio_metrics(
     else:
         dd_sparkline = dd_series.tolist()
 
-    return {
+    payload = {
         # Capital
         "initial_capital": initial_capital,
-        "current_equity": round(current_equity, 2),
-        "total_pnl": round(total_pnl, 2),
-        "total_return_pct": round(total_return_pct, 2),
+        "current_equity": round(_json_safe_float(current_equity), 2),
+        "total_pnl": round(_json_safe_float(total_pnl), 2),
+        "total_return_pct": round(_json_safe_float(total_return_pct), 2),
 
         # Risk-adjusted
-        "sharpe_ratio": round(sharpe, 3),
-        "sortino_ratio": round(sortino, 3),
-        "calmar_ratio": round(calmar, 3),
-        "volatility_ann_pct": round(volatility, 2),
+        "sharpe_ratio": round(_json_safe_float(sharpe), 3),
+        "sortino_ratio": round(_json_safe_float(sortino), 3),
+        "calmar_ratio": round(_json_safe_float(calmar), 3),
+        "volatility_ann_pct": round(_json_safe_float(volatility), 2),
 
         # Drawdown
-        "max_drawdown_pct": round(max_drawdown_pct, 2),
-        "current_drawdown_pct": round(current_drawdown_pct, 2),
+        "max_drawdown_pct": round(_json_safe_float(max_drawdown_pct), 2),
+        "current_drawdown_pct": round(_json_safe_float(current_drawdown_pct), 2),
 
         # Trade stats
         "total_trades": len(closed_trades),
-        "win_rate_pct": round(win_rate, 1),
-        "profit_factor": round(min(profit_factor, 999), 2),
-        "expectancy": round(expectancy, 2),
-        "avg_win": round(avg_win, 2),
-        "avg_loss": round(avg_loss, 2),
-        "avg_trade": round(avg_trade, 2),
-        "best_trade": round(best_trade, 2),
-        "worst_trade": round(worst_trade, 2),
+        "win_rate_pct": round(_json_safe_float(win_rate), 1),
+        "profit_factor": round(_json_safe_float(min(profit_factor, 999)), 2),
+        "expectancy": round(_json_safe_float(expectancy), 2),
+        "avg_win": round(_json_safe_float(avg_win), 2),
+        "avg_loss": round(_json_safe_float(avg_loss), 2),
+        "avg_trade": round(_json_safe_float(avg_trade), 2),
+        "best_trade": round(_json_safe_float(best_trade), 2),
+        "worst_trade": round(_json_safe_float(worst_trade), 2),
         "max_consecutive_wins": max_consec_wins,
         "max_consecutive_losses": max_consec_losses,
         "current_streak": current_streak,
 
         # Charts
-        "equity_sparkline": [round(v, 2) for v in sparkline],
-        "drawdown_sparkline": [round(v, 2) for v in dd_sparkline],
+        "equity_sparkline": [round(_json_safe_float(v, default=initial_capital), 2) for v in sparkline],
+        "drawdown_sparkline": [round(_json_safe_float(v), 2) for v in dd_sparkline],
         "monthly_pnl": monthly_pnl,
     }
+    return _json_safe_tree(payload)
 
 
 def _sharpe(returns: np.ndarray, periods_per_year: int = 8760, risk_free: float = 0.0) -> float:
@@ -148,7 +177,7 @@ def _sortino(returns: np.ndarray, periods_per_year: int = 8760, mar: float = 0.0
         return 0.0
     downside = returns[returns < mar]
     if len(downside) == 0:
-        return float('inf')
+        return 99.0
     downside_std = downside.std()
     if downside_std == 0:
         return 0.0

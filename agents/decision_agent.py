@@ -35,7 +35,8 @@ def build_decision_prompt(
     indicators: Dict,
     sentiment: Dict,
     portfolio: Dict,
-    active_strategy: Optional[str] = None
+    active_strategy: Optional[str] = None,
+    execution_confidence_floor: float = 0.55,
 ) -> str:
     return f"""Make a trading decision for {symbol}.
 
@@ -66,6 +67,7 @@ Win Rate: {portfolio.get('win_rate', 0)*100:.1f}%
 Current Drawdown: {portfolio.get('drawdown', 0)*100:.2f}%
 Open Positions: {portfolio.get('open_trades_count', 0)}
 Max Risk Per Trade: {settings.MAX_RISK_PER_TRADE*100:.1f}%
+Execution confidence floor (this run): {execution_confidence_floor:.0%} — BUY/SELL must meet or exceed this to be executed.
 
 {f'Active Strategy: {active_strategy}' if active_strategy else ''}
 
@@ -162,7 +164,11 @@ def run_decision_agent(
     """Main entry point for the Decision Agent."""
     trading_state.add_log("DecisionAgent", f"Synthesizing signals for {symbol}...")
 
-    prompt = build_decision_prompt(symbol, indicators, sentiment, portfolio_dict)
+    floor = trading_state.effective_min_trade_confidence()
+    prompt = build_decision_prompt(
+        symbol, indicators, sentiment, portfolio_dict,
+        execution_confidence_floor=floor,
+    )
     raw = get_llm_response(prompt, system=DECISION_SYSTEM_PROMPT, max_tokens=800)
 
     decision = parse_decision_response(raw, symbol, indicators, portfolio_dict)

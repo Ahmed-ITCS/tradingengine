@@ -90,7 +90,7 @@ def _generate_synthetic_ohlcv(symbol: str, timeframe: str, limit: int) -> pd.Dat
 def compute_indicators(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     """Compute comprehensive TA indicators using pandas-ta."""
     try:
-        import ta as ta
+        import pandas_ta  # noqa: F401 — side effect: registers DataFrame.ta
 
         # Trend
         df.ta.ema(length=20, append=True)

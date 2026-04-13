@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import sys
+from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
@@ -41,25 +42,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("evotrade.main")
 
-# ── App ───────────────────────────────────────────────────────────────────────
-app = FastAPI(
-    title="EvoTrade AI",
-    version=settings.VERSION,
-    description="Self-Evolving Multi-Agent Trading Engine",
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 frontend_dir = os.path.join(os.path.dirname(__file__), "frontend")
-if os.path.exists(frontend_dir):
-    app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
-
 
 # ── WebSocket Manager ─────────────────────────────────────────────────────────
 class ConnectionManager:
@@ -107,10 +90,31 @@ async def broadcast_loop():
         await asyncio.sleep(0.3)
 
 
-@app.on_event("startup")
-async def startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     asyncio.create_task(broadcast_loop())
     logger.info("EvoTrade AI FastAPI started ✅")
+    yield
+
+
+# ── App ───────────────────────────────────────────────────────────────────────
+app = FastAPI(
+    title="EvoTrade AI",
+    version=settings.VERSION,
+    description="Self-Evolving Multi-Agent Trading Engine",
+    lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+if os.path.exists(frontend_dir):
+    app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 
 
 # ── Root / Frontend ───────────────────────────────────────────────────────────

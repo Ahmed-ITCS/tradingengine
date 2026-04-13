@@ -36,6 +36,18 @@ class Settings(BaseSettings):
     MAX_DRAWDOWN_KILL: float = 0.10       # 10% global drawdown kill
     INITIAL_CAPITAL: float = 10000.0
 
+    # Execution gate (graph + execution agent). Override via .env without code edits.
+    MIN_TRADE_CONFIDENCE: float = 0.55
+    # Non-paper: human_review auto-approves at or above this confidence.
+    LIVE_AUTO_APPROVE_CONFIDENCE: float = 0.80
+
+    # Adaptive floor: each cycle nudges effective min confidence from recent closed trades.
+    ADAPTIVE_TRADE_CONFIDENCE: bool = False
+    ADAPTIVE_CONFIDENCE_WINDOW: int = 15
+    ADAPTIVE_CONFIDENCE_STEP: float = 0.03
+    ADAPTIVE_CONFIDENCE_MIN_FLOOR: float = 0.45
+    ADAPTIVE_CONFIDENCE_MAX_CEIL: float = 0.75
+
     # Engine
     ENGINE_INTERVAL_SECONDS: int = 30
     EVOLUTION_INTERVAL_HOURS: int = 6

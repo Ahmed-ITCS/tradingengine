@@ -133,11 +133,11 @@ def run_execution_agent(decision: TradeDecision) -> Optional[Trade]:
         trading_state.add_log("ExecutionAgent", "Signal is HOLD — no action taken")
         return None
 
-    # Confidence threshold
-    if decision.confidence < 0.55:
+    floor = trading_state.effective_min_trade_confidence()
+    if decision.confidence < floor:
         trading_state.add_log(
             "ExecutionAgent",
-            f"Confidence {decision.confidence:.0%} below threshold (55%) — skipping",
+            f"Confidence {decision.confidence:.0%} below threshold ({floor:.0%}) — skipping",
             level="warn"
         )
         return None
