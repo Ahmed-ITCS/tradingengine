@@ -94,7 +94,21 @@ async def broadcast_loop():
 async def lifespan(app: FastAPI):
     asyncio.create_task(broadcast_loop())
     logger.info("EvoTrade AI FastAPI started ✅")
+    if settings.AUTO_START_ENGINE:
+        trading_state.symbol = settings.DEFAULT_SYMBOL
+        trading_state.timeframe = settings.DEFAULT_TIMEFRAME
+        trading_state.paper_trading = settings.PAPER_TRADING
+        try:
+            engine.start()
+            logger.info("Trading engine auto-started (AUTO_START_ENGINE=true, single-worker deploy recommended)")
+        except Exception:
+            logger.exception("AUTO_START_ENGINE: failed to start trading engine")
     yield
+    try:
+        engine.stop()
+    except Exception:
+        pass
+    logger.info("EvoTrade shutdown complete")
 
 
 # ── App ───────────────────────────────────────────────────────────────────────

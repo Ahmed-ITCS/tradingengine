@@ -51,6 +51,9 @@ class Settings(BaseSettings):
     # Engine
     ENGINE_INTERVAL_SECONDS: int = 30
     EVOLUTION_INTERVAL_HOURS: int = 6
+    # If true, start the trading scheduler as soon as FastAPI boots (for headless servers).
+    # Use a single uvicorn worker (--workers 1); multiple workers would run duplicate engines.
+    AUTO_START_ENGINE: bool = False
 
     # Database
     DB_PATH: str = "data/evotrade.duckdb"

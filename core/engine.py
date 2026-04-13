@@ -29,7 +29,9 @@ class TradingEngine:
     """
 
     def __init__(self):
-        self._scheduler = BackgroundScheduler(daemon=True)
+        # daemon=False keeps the scheduler thread non-daemon so the process stays predictable
+        # under process managers (systemd, Docker) until engine.stop() runs on shutdown.
+        self._scheduler = BackgroundScheduler(daemon=False)
         self._running = False
         self._cycle_lock = threading.Lock()
 
