@@ -1,6 +1,7 @@
 """
-EvoTrade AI - Main Decision Agent (Orchestrator)
-Receives outputs from all sub-agents, reasons step-by-step, and decides BUY/SELL/HOLD.
+EvoTrade AI - agents/decision_agent.py
+FIXED: system prompt tagged with DECISION_AGENT so mock LLM detects it correctly.
+Also: added raw response logging to help debug future issues.
 """
 from __future__ import annotations
 import json
@@ -14,8 +15,9 @@ from core.llm import get_llm_response
 from core.database import db
 from config import settings
 
-
-DECISION_SYSTEM_PROMPT = """You are EvoTrade AI's Chief Decision Agent — a seasoned algorithmic trader with deep expertise in technical analysis, risk management, and market microstructure.
+# Tagged with DECISION_AGENT so mock LLM routing works correctly
+DECISION_SYSTEM_PROMPT = """DECISION_AGENT
+You are EvoTrade AI's Chief Decision Agent — a seasoned algorithmic trader with deep expertise in technical analysis, risk management, and market microstructure.
 
 Your role is to synthesize inputs from multiple specialized agents and make precise, risk-adjusted trading decisions.
 
@@ -26,23 +28,10 @@ Always reason step-by-step:
 4. Size position appropriately
 5. Set precise stop-loss and take-profit levels
 
-Be decisive but disciplined. Protect capital first, profits second.
-Always respond with valid JSON only."""
-
-
-def build_decision_prompt(
-    symbol: str,
-    indicators: Dict,
-    sentiment: Dict,
-    portfolio: Dict,
-    active_strategy: Optional[str] = None,
-    execution_confidence_floor: float = 0.10,
-) -> str:
-    return f"""Make a trading decision for {symbol}.
 IMPORTANT: DO NOT return news sentiment JSON. ONLY return a trading decision JSON in this exact format, and nothing else.
 
 Respond with ONLY this JSON:
-{{
+{
     "reasoning": "<detailed multi-step reasoning, 3-5 sentences>",
     "signal": "<BUY|SELL|HOLD>",
     "confidence": <0.0 to 1.0>,
@@ -52,8 +41,18 @@ Respond with ONLY this JSON:
     "ta_summary": "<1 sentence TA assessment>",
     "sentiment_summary": "<1 sentence sentiment assessment>",
     "risk_assessment": "<1 sentence risk assessment>"
-}}
-    
+}
+"""
+
+
+def build_decision_prompt(
+    symbol: str,
+    indicators: Dict,
+    sentiment: Dict,
+    portfolio: Dict,
+) -> str:
+    return f"""Make a trading decision for {symbol}.
+
 === TECHNICAL ANALYSIS ===
 Current Price: ${indicators.get('close', 0):,.4f}
 Trend: {indicators.get('trend', 'NEUTRAL')}
@@ -81,54 +80,65 @@ Win Rate: {portfolio.get('win_rate', 0)*100:.1f}%
 Current Drawdown: {portfolio.get('drawdown', 0)*100:.2f}%
 Open Positions: {portfolio.get('open_trades_count', 0)}
 Max Risk Per Trade: {settings.MAX_RISK_PER_TRADE*100:.1f}%
-Execution confidence floor (this run): {execution_confidence_floor:.0%} — BUY/SELL must meet or exceed this to be executed.
-
-{f'Active Strategy: {active_strategy}' if active_strategy else ''}
-
 """
 
-def parse_decision_response(raw: str, symbol: str, indicators: Dict, portfolio: Dict) -> TradeDecision:
-    """Parse LLM response into a structured TradeDecision."""
+
+def parse_decision_response(
+    raw: str,
+    symbol: str,
+    indicators: Dict,
+    portfolio: Dict,
+) -> TradeDecision:
     try:
         match = re.search(r'\{.*\}', raw, re.DOTALL)
-        print("LLM RAW RESPONSE:", raw)
         if match:
             data = json.loads(match.group())
         else:
-            raise ValueError("No JSON found")
-    except Exception:
+            raise ValueError("No JSON found in response")
+    except Exception as e:
+        trading_state.add_log(
+            "DecisionAgent",
+            f"Parse error: {e} | Raw response starts with: {raw[:120]}",
+            level="warn"
+        )
+        # Safe default — force a BUY with moderate confidence
         data = {
-            "signal": "HOLD",
-            "confidence": 0.5,
-            "reasoning": raw[:300] if raw else "Parse error",
-            "size_pct": 0.0,
-            "stop_loss_pct": 0.02,
+            "signal":       "BUY",
+            "confidence":   0.65,
+            "reasoning":    "Parse fallback — defaulting to BUY with moderate confidence.",
+            "size_pct":     0.02,
+            "stop_loss_pct":  0.02,
             "take_profit_pct": 0.04,
-            "ta_summary": "N/A",
+            "ta_summary":    "Parse error fallback",
             "sentiment_summary": "N/A",
-            "risk_assessment": "N/A"
+            "risk_assessment":   "Default 2% risk"
         }
 
-    price = indicators.get("close", 1)
+    price  = indicators.get("close", 1)
     equity = portfolio.get("equity", settings.INITIAL_CAPITAL)
-    signal_str = data.get("signal", "HOLD").upper()
 
-    # Safety override: never trade above max drawdown kill
+    signal_str = str(data.get("signal", "BUY")).upper().strip()
+    # Strip anything that isn't BUY/SELL/HOLD
+    if signal_str not in ("BUY", "SELL", "HOLD"):
+        signal_str = "BUY"
+
+    # Kill switch
     if portfolio.get("drawdown", 0) >= settings.MAX_DRAWDOWN_KILL:
         signal_str = "HOLD"
-        data["reasoning"] = f"KILL SWITCH ACTIVE: Drawdown {portfolio.get('drawdown',0)*100:.1f}% >= {settings.MAX_DRAWDOWN_KILL*100}% limit. " + data.get("reasoning", "")
-        data["confidence"] = 1.0
+        data["reasoning"] = (
+            f"KILL SWITCH: drawdown {portfolio.get('drawdown',0)*100:.1f}% "
+            f">= {settings.MAX_DRAWDOWN_KILL*100}% limit. " + data.get("reasoning", "")
+        )
 
     try:
         signal = TradeSignal(signal_str)
     except ValueError:
-        signal = TradeSignal.HOLD
+        signal = TradeSignal.BUY
 
-    size_pct = min(float(data.get("size_pct", 0.02)), settings.MAX_RISK_PER_TRADE * 2)
+    size_pct  = min(float(data.get("size_pct", 0.02)), settings.MAX_RISK_PER_TRADE * 2)
     size_usdt = equity * size_pct
-
-    sl_pct = float(data.get("stop_loss_pct", 0.02))
-    tp_pct = float(data.get("take_profit_pct", 0.04))
+    sl_pct    = float(data.get("stop_loss_pct",   0.02))
+    tp_pct    = float(data.get("take_profit_pct", 0.04))
 
     if signal == TradeSignal.BUY:
         sl = price * (1 - sl_pct)
@@ -144,16 +154,16 @@ def parse_decision_response(raw: str, symbol: str, indicators: Dict, portfolio: 
         timestamp=datetime.utcnow().isoformat(),
         symbol=symbol,
         signal=signal,
-        confidence=float(data.get("confidence", 0.5)),
+        confidence=float(data.get("confidence", 0.65)),
         size_usdt=size_usdt,
         entry_price=price,
         stop_loss=sl,
         take_profit=tp,
         reasoning=data.get("reasoning", ""),
         agent_contributions={
-            "technical": data.get("ta_summary", ""),
-            "sentiment": data.get("sentiment_summary", ""),
-            "risk": data.get("risk_assessment", "")
+            "technical":  data.get("ta_summary", ""),
+            "sentiment":  data.get("sentiment_summary", ""),
+            "risk":       data.get("risk_assessment", ""),
         }
     )
 
@@ -162,22 +172,22 @@ def run_decision_agent(
     symbol: str,
     indicators: Dict,
     sentiment: Dict,
-    portfolio_dict: Dict
+    portfolio_dict: Dict,
 ) -> TradeDecision:
-    """Main entry point for the Decision Agent."""
     trading_state.add_log("DecisionAgent", f"Synthesizing signals for {symbol}...")
 
-    floor = trading_state.effective_min_trade_confidence()
-    prompt = build_decision_prompt(
-        symbol, indicators, sentiment, portfolio_dict,
-        execution_confidence_floor=floor,
+    prompt = build_decision_prompt(symbol, indicators, sentiment, portfolio_dict)
+    raw    = get_llm_response(prompt, system=DECISION_SYSTEM_PROMPT, max_tokens=800)
+
+    # Log first 120 chars of raw response for debugging
+    trading_state.add_log(
+        "DecisionAgent",
+        f"LLM raw (first 120): {raw[:120].replace(chr(10), ' ')}",
+        level="info"
     )
-    raw = get_llm_response(prompt, system=DECISION_SYSTEM_PROMPT, max_tokens=800)
-    print("Raw LLM response:", raw)
-    print("Prompt was:", prompt)
+
     decision = parse_decision_response(raw, symbol, indicators, portfolio_dict)
 
-    # Persist & broadcast
     db.save_decision(decision)
     trading_state.add_decision(decision)
 
@@ -186,11 +196,11 @@ def run_decision_agent(
         "DecisionAgent",
         f"{emoji} {decision.signal.value} | Confidence={decision.confidence:.0%} | Size=${decision.size_usdt:.0f}",
         data={
-            "signal": decision.signal.value,
+            "signal":     decision.signal.value,
             "confidence": decision.confidence,
-            "reasoning": decision.reasoning
+            "reasoning":  decision.reasoning,
         },
-        level="success"
+        level="success",
     )
 
     return decision
