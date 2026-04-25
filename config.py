@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
 
     # LLM Provider: "openai" | "anthropic" | "gemini" | "ollama" | "mock"
-    LLM_PROVIDER: str = "mock"
+    LLM_PROVIDER: str = "gemini"
     OPENAI_API_KEY: Optional[str] = None
     ANTHROPIC_API_KEY: Optional[str] = None
     GEMINI_API_KEY: Optional[str] = None          # Google Gemini
@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     DEFAULT_TIMEFRAME: str = "1h"
     MAX_RISK_PER_TRADE: float = 0.02      # 2% per trade
     MAX_DRAWDOWN_KILL: float = 0.10       # 10% global drawdown kill
-    INITIAL_CAPITAL: float = 10000.0
+    INITIAL_CAPITAL: float = 100.0
 
     # Execution gate (graph + execution agent). Override via .env without code edits.
     MIN_TRADE_CONFIDENCE: float = 0.10
