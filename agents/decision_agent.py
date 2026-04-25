@@ -89,6 +89,7 @@ def parse_decision_response(raw: str, symbol: str, indicators: Dict, portfolio: 
     """Parse LLM response into a structured TradeDecision."""
     try:
         match = re.search(r'\{.*\}', raw, re.DOTALL)
+        print("LLM RAW RESPONSE:", raw)
         if match:
             data = json.loads(match.group())
         else:
