@@ -71,7 +71,9 @@ Execution confidence floor (this run): {execution_confidence_floor:.0%} — BUY/
 
 {f'Active Strategy: {active_strategy}' if active_strategy else ''}
 
-Reason step-by-step then respond with ONLY this JSON:
+IMPORTANT: DO NOT return news sentiment JSON. ONLY return a trading decision JSON in this exact format, and nothing else.
+
+Respond with ONLY this JSON:
 {{
     "reasoning": "<detailed multi-step reasoning, 3-5 sentences>",
     "signal": "<BUY|SELL|HOLD>",
@@ -83,7 +85,6 @@ Reason step-by-step then respond with ONLY this JSON:
     "sentiment_summary": "<1 sentence sentiment assessment>",
     "risk_assessment": "<1 sentence risk assessment>"
 }}"""
-
 
 def parse_decision_response(raw: str, symbol: str, indicators: Dict, portfolio: Dict) -> TradeDecision:
     """Parse LLM response into a structured TradeDecision."""
