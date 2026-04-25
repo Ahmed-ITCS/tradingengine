@@ -171,7 +171,8 @@ def run_decision_agent(
         execution_confidence_floor=floor,
     )
     raw = get_llm_response(prompt, system=DECISION_SYSTEM_PROMPT, max_tokens=800)
-
+    print("Raw LLM response:", raw)
+    print("Prompt was:", prompt)
     decision = parse_decision_response(raw, symbol, indicators, portfolio_dict)
 
     # Persist & broadcast
