@@ -39,7 +39,21 @@ def build_decision_prompt(
     execution_confidence_floor: float = 0.10,
 ) -> str:
     return f"""Make a trading decision for {symbol}.
+IMPORTANT: DO NOT return news sentiment JSON. ONLY return a trading decision JSON in this exact format, and nothing else.
 
+Respond with ONLY this JSON:
+{{
+    "reasoning": "<detailed multi-step reasoning, 3-5 sentences>",
+    "signal": "<BUY|SELL|HOLD>",
+    "confidence": <0.0 to 1.0>,
+    "size_pct": <fraction of equity to risk, max 0.05>,
+    "stop_loss_pct": <e.g. 0.02 for 2% SL>,
+    "take_profit_pct": <e.g. 0.04 for 4% TP>,
+    "ta_summary": "<1 sentence TA assessment>",
+    "sentiment_summary": "<1 sentence sentiment assessment>",
+    "risk_assessment": "<1 sentence risk assessment>"
+}}
+    
 === TECHNICAL ANALYSIS ===
 Current Price: ${indicators.get('close', 0):,.4f}
 Trend: {indicators.get('trend', 'NEUTRAL')}
@@ -71,20 +85,7 @@ Execution confidence floor (this run): {execution_confidence_floor:.0%} — BUY/
 
 {f'Active Strategy: {active_strategy}' if active_strategy else ''}
 
-IMPORTANT: DO NOT return news sentiment JSON. ONLY return a trading decision JSON in this exact format, and nothing else.
-
-Respond with ONLY this JSON:
-{{
-    "reasoning": "<detailed multi-step reasoning, 3-5 sentences>",
-    "signal": "<BUY|SELL|HOLD>",
-    "confidence": <0.0 to 1.0>,
-    "size_pct": <fraction of equity to risk, max 0.05>,
-    "stop_loss_pct": <e.g. 0.02 for 2% SL>,
-    "take_profit_pct": <e.g. 0.04 for 4% TP>,
-    "ta_summary": "<1 sentence TA assessment>",
-    "sentiment_summary": "<1 sentence sentiment assessment>",
-    "risk_assessment": "<1 sentence risk assessment>"
-}}"""
+"""
 
 def parse_decision_response(raw: str, symbol: str, indicators: Dict, portfolio: Dict) -> TradeDecision:
     """Parse LLM response into a structured TradeDecision."""
