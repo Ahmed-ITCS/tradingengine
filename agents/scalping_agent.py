@@ -450,7 +450,7 @@ def evaluate_setups(df: pd.DataFrame, ind: Dict) -> List[SetupResult]:
     ]
 
 
-def select_best_setup(df: pd.DataFrame, ind: Dict) -> Optional[SetupResult]:
+def select_best_setup(df: pd.DataFrame, ind: Dict, *, silent: bool = False) -> Optional[SetupResult]:
     """
     Score all setups and return the best non-HOLD one above MIN_CONFIDENCE.
     Returns None if no setup clears the confidence threshold.
@@ -464,11 +464,12 @@ def select_best_setup(df: pd.DataFrame, ind: Dict) -> Optional[SetupResult]:
     best = max(actionable, key=lambda c: c.score)
     min_conf = settings.SCALPING_MIN_CONFIDENCE
     if best.confidence < min_conf:
-        trading_state.add_log(
-            "ScalpingAgent",
-            f"Best setup '{best.name}' confidence {best.confidence:.0%} < min {min_conf:.0%} — HOLD",
-            level="info",
-        )
+        if not silent:
+            trading_state.add_log(
+                "ScalpingAgent",
+                f"Best setup '{best.name}' confidence {best.confidence:.0%} < min {min_conf:.0%} — HOLD",
+                level="info",
+            )
         return None
 
     return best
@@ -719,7 +720,7 @@ def run_scalping_agent_auto(symbol: str, portfolio_dict: Dict) -> "TradeDecision
                 tf_results.append(f"{tf}:noisy({noise*100:.1f}%)")
                 continue
 
-            setup = select_best_setup(df, ind)
+            setup = select_best_setup(df, ind, silent=True)
             score = setup.score if setup else 0.0
             tf_results.append(f"{tf}:score={score:.0f}({setup.name if setup else 'HOLD'})")
 
@@ -863,6 +864,13 @@ def run_scalping_agent(
         take_profit=final_tp,
         fallback_setup=final_setup,
     )
+
+    # Optional rule-support requirement. When SCALPING_LLM_FINAL_AUTHORITY=true,
+    # LLM BUY/SELL can proceed even with no qualifying rule setup.
+    if final_signal in ("BUY", "SELL") and final_setup is None and not settings.SCALPING_LLM_FINAL_AUTHORITY:
+        reason = f"LLM no-trade: no rule-supported setup for signal={final_signal}"
+        trading_state.add_log("ScalpingAgent", reason + " — HOLD", level="warn")
+        return _hold_decision(symbol, indicators, reason)
 
     # Confidence gate remains strict for both LLM and rules.
     if final_signal == "HOLD" or final_conf < settings.SCALPING_MIN_CONFIDENCE:

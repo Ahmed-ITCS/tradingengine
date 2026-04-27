@@ -86,6 +86,9 @@ class Settings(BaseSettings):
     SCALPING_ATR_SL_MULT: float = 0.8
     # If true, scalping final decision is LLM-driven (Gemini/OpenAI/etc), with rule fallback.
     SCALPING_USE_LLM: bool = True
+    # If true, LLM has final authority for BUY/SELL even when no rule setup qualifies.
+    # Risk gates still apply (daily kill, confidence floor, position sizing, SL/TP sanity).
+    SCALPING_LLM_FINAL_AUTHORITY: bool = True
 
     # ── Auto timeframe selection ───────────────────────────────────────────────
     # When True, the engine evaluates all SCALPING_TF_OPTIONS each cycle and
