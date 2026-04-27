@@ -101,17 +101,17 @@ def parse_decision_response(
             f"Parse error: {e} | Raw response starts with: {raw[:120]}",
             level="warn"
         )
-        # Safe default — force a BUY with moderate confidence
+        # Safe default — hold when model output cannot be parsed.
         data = {
-            "signal":       "BUY",
-            "confidence":   0.65,
-            "reasoning":    "Parse fallback — defaulting to BUY with moderate confidence.",
-            "size_pct":     0.02,
+            "signal":       "HOLD",
+            "confidence":   0.0,
+            "reasoning":    "Parse fallback — invalid model response, choosing HOLD for safety.",
+            "size_pct":     0.0,
             "stop_loss_pct":  0.02,
             "take_profit_pct": 0.04,
             "ta_summary":    "Parse error fallback",
             "sentiment_summary": "N/A",
-            "risk_assessment":   "Default 2% risk"
+            "risk_assessment":   "No trade on parser failure"
         }
 
     price  = indicators.get("close", 1)

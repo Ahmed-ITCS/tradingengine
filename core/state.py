@@ -11,6 +11,8 @@ from datetime import datetime
 from enum import Enum
 import queue
 
+from config import settings
+
 
 class TradeSignal(str, Enum):
     BUY = "BUY"
@@ -86,12 +88,12 @@ class Strategy:
 
 @dataclass
 class PortfolioState:
-    capital: float = 10000.0
-    equity: float = 10000.0
+    capital: float = settings.INITIAL_CAPITAL
+    equity: float = settings.INITIAL_CAPITAL
     unrealized_pnl: float = 0.0
     realized_pnl: float = 0.0
     drawdown: float = 0.0
-    peak_equity: float = 10000.0
+    peak_equity: float = settings.INITIAL_CAPITAL
     win_count: int = 0
     loss_count: int = 0
     trade_count: int = 0

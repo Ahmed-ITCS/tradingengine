@@ -37,7 +37,10 @@ class Settings(BaseSettings):
     INITIAL_CAPITAL: float = 100.0
 
     # Execution gate (graph + execution agent). Override via .env without code edits.
-    MIN_TRADE_CONFIDENCE: float = 0.10
+    MIN_TRADE_CONFIDENCE: float = 0.60
+    MAX_OPEN_TRADES_TOTAL: int = 3
+    MAX_OPEN_TRADES_PER_SYMBOL: int = 1
+    TRADE_COOLDOWN_SECONDS: int = 300
     # Non-paper: human_review auto-approves at or above this confidence.
     LIVE_AUTO_APPROVE_CONFIDENCE: float = 0.80
 
@@ -53,7 +56,7 @@ class Settings(BaseSettings):
     EVOLUTION_INTERVAL_HOURS: int = 6
     # If true, start the trading scheduler as soon as FastAPI boots (for headless servers).
     # Use a single uvicorn worker (--workers 1); multiple workers would run duplicate engines.
-    AUTO_START_ENGINE: bool = False
+    AUTO_START_ENGINE: bool = True
 
     # Database
     DB_PATH: str = "data/evotrade.duckdb"

@@ -20,11 +20,6 @@ from agents.decision_agent import run_decision_agent
 from agents.execution_agent import run_execution_agent, monitor_open_trades
 from config import settings
 
-# ── Single place to control trade frequency ───────────────────────────────────
-# Lower = more trades. Raise if you want fewer, higher-confidence trades only.
-MIN_CONFIDENCE = 0.30   # was 0.55 in old graph.py — that blocked everything
-
-
 class TradingGraphState(TypedDict):
     symbol: str
     timeframe: str
@@ -96,16 +91,16 @@ def node_make_decision(state: TradingGraphState) -> TradingGraphState:
             portfolio_dict=portfolio_dict,
         )
 
-        # ── THE FIX: use MIN_CONFIDENCE = 0.30, not 0.55 ─────────────────────
+        min_confidence = trading_state.effective_min_trade_confidence()
         drawdown_ok    = trading_state.portfolio.drawdown < settings.MAX_DRAWDOWN_KILL
         signal_ok      = decision.signal != TradeSignal.HOLD
-        confidence_ok  = decision.confidence >= MIN_CONFIDENCE
+        confidence_ok  = decision.confidence >= min_confidence
         should_exec    = signal_ok and confidence_ok and drawdown_ok
 
         trading_state.add_log(
             "LangGraph",
             f"[Node: DecisionAgent] signal={decision.signal.value} "
-            f"conf={decision.confidence:.0%} min={MIN_CONFIDENCE:.0%} "
+            f"conf={decision.confidence:.0%} min={min_confidence:.0%} "
             f"→ should_execute={should_exec}",
         )
 

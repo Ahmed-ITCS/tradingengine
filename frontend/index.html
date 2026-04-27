@@ -939,7 +939,7 @@ input[type="range"]::-webkit-slider-thumb {
     <div class="spacer"></div>
     <div class="topbar-metric">
       <span class="label">Equity</span>
-      <span class="val neu" id="top-equity">$10,000</span>
+      <span class="val neu" id="top-equity">$100</span>
     </div>
     <div class="topbar-sep"></div>
     <div class="topbar-metric">
@@ -1044,7 +1044,7 @@ input[type="range"]::-webkit-slider-thumb {
           </div>
           <div class="metric-card">
             <div class="metric-label">Equity</div>
-            <div class="metric-value" id="m-equity">$10,000</div>
+            <div class="metric-value" id="m-equity">$100</div>
             <div class="metric-sub" id="m-equity-sub">Unrealized: $0</div>
           </div>
           <div class="metric-card">
@@ -1106,6 +1106,20 @@ input[type="range"]::-webkit-slider-thumb {
             </div>
           </div>
           <div id="main-chart" style="height:320px"></div>
+        </div>
+
+        <!-- Always-visible Open Positions -->
+        <div class="panel-header">
+          <span class="panel-title">Live Open Positions</span>
+          <span class="panel-badge" id="dashboard-open-count">0 open</span>
+        </div>
+        <div class="table-card">
+          <table class="data-table">
+            <thead><tr>
+              <th>ID</th><th>Symbol</th><th>Side</th><th>Entry</th><th>P&amp;L</th><th>Action</th>
+            </tr></thead>
+            <tbody id="dashboard-open-trades-body"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:14px">No open positions</td></tr></tbody>
+          </table>
         </div>
 
         <!-- Indicator Grid -->
@@ -1630,7 +1644,7 @@ function updateDashboardFromPayload(d) {
   setText('m-price', price > 0 ? `$${fmtPrice}` : '$—');
 
   const p = d.portfolio || {};
-  const equity = p.equity || 10000;
+  const equity = p.equity || 100;
   const pnl = (p.realized_pnl || 0) + (p.unrealized_pnl || 0);
   const dd = (p.drawdown || 0) * 100;
   const wr = p.win_rate || 0;
@@ -1789,7 +1803,7 @@ function renderEquityCurve() {
   const el = document.getElementById('equity-chart');
   if (!el) return;
 
-  const curve = equityCurve.length > 0 ? equityCurve : [{ time: new Date().toISOString(), equity: 10000 }];
+  const curve = equityCurve.length > 0 ? equityCurve : [{ time: new Date().toISOString(), equity: 100 }];
 
   const trace = {
     type: 'scatter',
@@ -1863,17 +1877,21 @@ function renderDecisions() {
 // ── RENDER TRADES ─────────────────────────────────────────────────────────────
 function renderTrades() {
   const openBody = document.getElementById('open-trades-body');
+  const dashOpenBody = document.getElementById('dashboard-open-trades-body');
+  const dashOpenCount = document.getElementById('dashboard-open-count');
   const closedBody = document.getElementById('closed-trades-body');
   const openCount = document.getElementById('open-count');
   const price = 0; // use current price from state
 
-  if (openCount) openCount.textContent = `${(allTrades.open||[]).length} open`;
+  const openTrades = allTrades.open || [];
+  if (openCount) openCount.textContent = `${openTrades.length} open`;
+  if (dashOpenCount) dashOpenCount.textContent = `${openTrades.length} open`;
 
   if (openBody) {
-    if (!allTrades.open || !allTrades.open.length) {
+    if (!openTrades.length) {
       openBody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">No open positions</td></tr>';
     } else {
-      openBody.innerHTML = allTrades.open.map(t => {
+      openBody.innerHTML = openTrades.map(t => {
         const pnl = t.pnl || 0;
         return `<tr>
           <td style="color:var(--muted)">${t.id}</td>
@@ -1884,6 +1902,24 @@ function renderTrades() {
           <td>${(t.size||0).toFixed(6)}</td>
           <td class="${pnl >= 0 ? 'pos' : 'neg'}">$${fmt(pnl)}</td>
           <td style="font-size:10px">SL:${t.stop_loss ? '$'+fmt(t.stop_loss) : '—'} / TP:${t.take_profit ? '$'+fmt(t.take_profit) : '—'}</td>
+          <td><button class="btn-sm btn-sm-close" onclick="closeTrade('${t.id}')">Close</button></td>
+        </tr>`;
+      }).join('');
+    }
+  }
+
+  if (dashOpenBody) {
+    if (!openTrades.length) {
+      dashOpenBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:14px">No open positions</td></tr>';
+    } else {
+      dashOpenBody.innerHTML = openTrades.slice(0, 5).map(t => {
+        const pnl = t.pnl || 0;
+        return `<tr>
+          <td style="color:var(--muted)">${t.id}</td>
+          <td>${t.symbol}</td>
+          <td><span class="side-tag ${t.side}">${t.side.toUpperCase()}</span></td>
+          <td>$${fmt(t.entry_price)}</td>
+          <td class="${pnl >= 0 ? 'pos' : 'neg'}">$${fmt(pnl)}</td>
           <td><button class="btn-sm btn-sm-close" onclick="closeTrade('${t.id}')">Close</button></td>
         </tr>`;
       }).join('');
@@ -2324,13 +2360,14 @@ window.addEventListener('load', () => {
   onLLMChange(); // set initial hint
   connectWS();
   fetchStatus();
+  fetchTrades();
   fetchLogs();
   fetchDecisions();
   fetchIndicators();
   // Initial chart render after small delay
   setTimeout(() => { renderChart(); renderEquityCurve(); }, 500);
   // Periodic refresh even without engine (covers AUTO_START_ENGINE without clicking Start)
-  setInterval(() => { fetchStatus(); fetchLogs(); fetchDecisions(); }, 30000);
+  setInterval(() => { fetchStatus(); fetchTrades(); fetchLogs(); fetchDecisions(); }, 30000);
 });
 </script>
 </body>
