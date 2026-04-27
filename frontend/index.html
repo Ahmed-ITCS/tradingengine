@@ -572,6 +572,8 @@ input[type="range"]::-webkit-slider-thumb {
 .agent-ExecutionAgent { background: rgba(0,229,160,0.1); color: var(--green); border: 1px solid rgba(0,229,160,0.2); }
 .agent-EvolutionAgent { background: rgba(249,115,22,0.1); color: #fb923c; border: 1px solid rgba(249,115,22,0.2); }
 .agent-Engine { background: rgba(100,116,139,0.1); color: var(--muted); border: 1px solid rgba(100,116,139,0.2); }
+.agent-ScalpingAgent { background: rgba(0,229,160,0.1); color: var(--green); border: 1px solid rgba(0,229,160,0.2); }
+.agent-ScalpingEngine { background: rgba(16,185,129,0.1); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
 
 .log-msg { color: var(--text); line-height: 1.4; word-break: break-word; }
 .log-msg.warn { color: var(--yellow); }
@@ -912,6 +914,170 @@ input[type="range"]::-webkit-slider-thumb {
 }
 #ws-status.connected { background: var(--green); box-shadow: 0 0 6px var(--green); }
 #ws-status.disconnected { background: var(--red); }
+
+/* ── SCALPING TAB ────────────────────────────────────────────────── */
+.scalp-hero {
+  background: linear-gradient(135deg, var(--bg1), rgba(0,229,160,0.04));
+  border: 1px solid rgba(0,229,160,0.2);
+  border-radius: 12px;
+  padding: 20px;
+}
+.scalp-hero h2 { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+.scalp-hero p { font-size: 11px; color: var(--muted); margin-bottom: 14px; }
+
+.scalp-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.scalp-field { display: flex; flex-direction: column; gap: 4px; }
+.scalp-field label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.scalp-field input, .scalp-field select {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.scalp-field input:focus, .scalp-field select:focus { border-color: var(--green); }
+
+.scalp-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.btn-scalp-on {
+  padding: 9px 20px;
+  background: linear-gradient(135deg, rgba(0,229,160,0.15), rgba(0,229,160,0.3));
+  border: 1px solid var(--green);
+  border-radius: 7px;
+  color: var(--green);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.4px;
+}
+.btn-scalp-on:hover { background: linear-gradient(135deg, rgba(0,229,160,0.25), rgba(0,229,160,0.45)); box-shadow: 0 0 14px rgba(0,229,160,0.25); }
+.btn-scalp-off {
+  padding: 9px 20px;
+  background: rgba(255,69,96,0.1);
+  border: 1px solid var(--red);
+  border-radius: 7px;
+  color: var(--red);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-scalp-off:hover { background: rgba(255,69,96,0.2); }
+.btn-scalp-warn {
+  padding: 9px 16px;
+  background: rgba(251,191,36,0.08);
+  border: 1px solid var(--yellow);
+  border-radius: 7px;
+  color: var(--yellow);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-scalp-warn:hover { background: rgba(251,191,36,0.18); }
+
+/* Kill switch banner */
+.kill-banner {
+  background: rgba(255,69,96,0.08);
+  border: 1px solid rgba(255,69,96,0.35);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--red);
+  font-family: var(--font-mono);
+}
+.kill-banner .kill-icon { font-size: 20px; }
+
+/* Daily budget bar */
+.budget-bar-wrap {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.budget-bar-labels { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.budget-bar-bg {
+  height: 8px;
+  background: var(--bg3);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+.budget-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease, background 0.3s;
+  background: var(--green);
+}
+.budget-bar-fill.warn { background: var(--yellow); }
+.budget-bar-fill.danger { background: var(--red); }
+.budget-bar-sub { display: flex; justify-content: space-between; margin-top: 6px; font-size: 10px; font-family: var(--font-mono); color: var(--muted); }
+
+/* Scalp setup cards */
+.setup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 8px;
+}
+.setup-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  transition: border-color 0.2s;
+}
+.setup-card:hover { border-color: var(--border2); }
+.setup-card .setup-name { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; }
+.setup-card .setup-count { font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--text); }
+.setup-card .setup-pnl { font-family: var(--font-mono); font-size: 11px; margin-top: 3px; }
+
+/* Scalping topbar pill */
+.scalp-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 0.5px;
+  background: rgba(0,229,160,0.08);
+  border: 1px solid rgba(0,229,160,0.25);
+  color: var(--green);
+  display: none;
+}
+.scalp-pill.active { display: flex; }
+.scalp-pill .scalp-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 5px var(--green); animation: pulse 1.5s infinite; }
+
+/* EOD checklist */
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.checklist-item .check-icon { font-size: 14px; width: 18px; text-align: center; }
+.checklist-item .check-label { color: var(--text); flex: 1; }
+.checklist-item.pass { background: rgba(0,229,160,0.05); }
+.checklist-item.fail { background: rgba(255,69,96,0.05); }
 </style>
 </head>
 <body>
@@ -953,6 +1119,11 @@ input[type="range"]::-webkit-slider-thumb {
     </div>
     <div class="topbar-sep"></div>
     <span class="mode-badge paper" id="mode-badge">PAPER</span>
+    <div class="scalp-pill" id="scalp-pill">
+      <div class="scalp-dot"></div>
+      SCALP
+      <span id="scalp-pill-pnl" style="opacity:0.7">$0.00</span>
+    </div>
   </header>
 
   <!-- SIDEBAR -->
@@ -1022,6 +1193,7 @@ input[type="range"]::-webkit-slider-thumb {
   <main id="main">
     <div id="tabs">
       <button class="tab-btn active" onclick="switchTab('dashboard')">Live Dashboard</button>
+      <button class="tab-btn" onclick="switchTab('scalping')">⚡ Scalping</button>
       <button class="tab-btn" onclick="switchTab('minds')">Agent Minds</button>
       <button class="tab-btn" onclick="switchTab('decisions')">AI Decisions</button>
       <button class="tab-btn" onclick="switchTab('trades')">Trades &amp; Portfolio</button>
@@ -1150,6 +1322,193 @@ input[type="range"]::-webkit-slider-thumb {
         </div>
       </div>
 
+      <!-- SCALPING TAB -->
+      <div class="tab-panel" id="tab-scalping">
+
+        <!-- Kill-switch banner (shown when active) -->
+        <div class="kill-banner" id="scalp-kill-banner" style="display:none">
+          <span class="kill-icon">🛑</span>
+          <div>
+            <div style="font-weight:700;margin-bottom:2px">DAILY LOSS LIMIT HIT — Trading Halted</div>
+            <div style="font-size:11px;opacity:0.8" id="scalp-kill-reason">Daily loss limit reached. All new entries are blocked until tomorrow or manual reset.</div>
+          </div>
+          <button class="btn-scalp-warn" style="margin-left:auto;padding:6px 12px;font-size:11px" onclick="scalpingResetKill()">Reset</button>
+        </div>
+
+        <!-- Control card -->
+        <div class="scalp-hero">
+          <h2>⚡ Intraday Scalping Engine</h2>
+          <p>Rule-based, low-latency scalp signals on 1m–5m crypto candles. Engine auto-selects the best setup each cycle.</p>
+
+          <div class="scalp-controls">
+            <div class="scalp-field">
+              <label>Symbol(s)</label>
+              <input type="text" id="scalp-symbols" value="BTC/USDT" placeholder="BTC/USDT,ETH/USDT">
+            </div>
+            <div class="scalp-field">
+              <label>Timeframe Mode</label>
+              <select id="scalp-tf-mode" onchange="onTFModeChange()">
+                <option value="auto" selected>⚡ Auto-select (recommended)</option>
+                <option value="fixed">Fixed TF</option>
+              </select>
+            </div>
+            <div class="scalp-field" id="scalp-tf-options-wrap">
+              <label>TF Options (auto mode)</label>
+              <input type="text" id="scalp-tf-options" value="1m,3m,5m" placeholder="1m,3m,5m">
+            </div>
+            <div class="scalp-field" id="scalp-tf-fixed-wrap" style="display:none">
+              <label>Fixed Timeframe</label>
+              <select id="scalp-tf">
+                <option value="1m">1m</option>
+                <option value="3m">3m</option>
+                <option value="5m" selected>5m</option>
+                <option value="15m">15m</option>
+              </select>
+            </div>
+            <div class="scalp-field" id="scalp-noise-wrap">
+              <label>Noise Filter (ATR/price %)</label>
+              <input type="number" id="scalp-noise" value="1.5" min="0.5" max="5" step="0.1" title="Skip a TF if its ATR/price exceeds this % — too choppy">
+            </div>
+            <div class="scalp-field">
+              <label>Account Size (USDT)</label>
+              <input type="number" id="scalp-account" value="1000" min="50" step="50">
+            </div>
+            <div class="scalp-field">
+              <label>Max Daily Loss %</label>
+              <input type="number" id="scalp-daily-loss" value="3" min="0.5" max="10" step="0.5">
+            </div>
+            <div class="scalp-field">
+              <label>Risk / Trade %</label>
+              <input type="number" id="scalp-risk-pt" value="0.5" min="0.1" max="2" step="0.1">
+            </div>
+            <div class="scalp-field">
+              <label>Max Trades / Day</label>
+              <input type="number" id="scalp-max-trades" value="20" min="1" max="100">
+            </div>
+            <div class="scalp-field">
+              <label>Cycle Interval (sec)</label>
+              <input type="number" id="scalp-interval" value="30" min="15" step="5">
+            </div>
+            <div class="scalp-field">
+              <label>Min Confidence</label>
+              <input type="number" id="scalp-conf" value="0.55" min="0.4" max="0.95" step="0.05">
+            </div>
+            <div class="scalp-field">
+              <label>Min SL Floor % (ATR overrides)</label>
+              <input type="number" id="scalp-sl" value="0.2" min="0.05" max="2" step="0.05" title="ATR-based SL is always used; this is the minimum floor.">
+            </div>
+            <div class="scalp-field">
+              <label>TP Multiplier (RR)</label>
+              <input type="number" id="scalp-tp-mult" value="1.5" min="1" max="5" step="0.1" title="Take-profit = actual SL distance × this. E.g. 1.5 = 1:1.5 RR">
+            </div>
+          </div>
+
+          <div class="scalp-btns">
+            <button class="btn-scalp-on" id="scalp-enable-btn" onclick="enableScalping()">▶ Enable Scalping</button>
+            <button class="btn-scalp-off" id="scalp-disable-btn" onclick="disableScalping()">■ Disable Scalping</button>
+            <button class="btn-scalp-warn" onclick="scalpingCloseAll()">⬛ Close All Positions</button>
+            <button class="btn-scalp-warn" onclick="fetchScalpingChecklist()">📋 EOD Checklist</button>
+          </div>
+        </div>
+
+        <!-- Daily risk status -->
+        <div class="metrics-row" id="scalp-metrics-row">
+          <div class="metric-card">
+            <div class="metric-label">Today's P&amp;L</div>
+            <div class="metric-value neu" id="scalp-daily-pnl">$0.00</div>
+            <div class="metric-sub" id="scalp-daily-pnl-pct">0.000%</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Trades Today</div>
+            <div class="metric-value" id="scalp-trades-today">0</div>
+            <div class="metric-sub" id="scalp-trades-rem">20 remaining</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Win Rate Today</div>
+            <div class="metric-value" id="scalp-wr-today">—</div>
+            <div class="metric-sub" id="scalp-wr-sub">0W / 0L</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Risk Budget Left</div>
+            <div class="metric-value pos" id="scalp-budget-left">$30.00</div>
+            <div class="metric-sub" id="scalp-budget-limit">Limit: $30.00</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Session P&amp;L</div>
+            <div class="metric-value neu" id="scalp-session-pnl">$0.00</div>
+            <div class="metric-sub" id="scalp-session-trades">0 session trades</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Status</div>
+            <div class="metric-value" id="scalp-status-val" style="font-size:14px">INACTIVE</div>
+            <div class="metric-sub" id="scalp-status-sub">—</div>
+          </div>
+        </div>
+
+        <!-- Daily loss budget bar -->
+        <div class="budget-bar-wrap">
+          <div class="budget-bar-labels">
+            <span style="font-size:11px;font-weight:700;color:var(--text)">Daily Loss Budget</span>
+            <span style="font-family:var(--font-mono);font-size:11px" id="scalp-bar-label">0% used of 3% limit</span>
+          </div>
+          <div class="budget-bar-bg">
+            <div class="budget-bar-fill" id="scalp-bar-fill" style="width:0%"></div>
+          </div>
+          <div class="budget-bar-sub">
+            <span>$0 used</span>
+            <span id="scalp-bar-right">$30 limit</span>
+          </div>
+        </div>
+
+        <!-- Setup breakdown -->
+        <div class="panel-header">
+          <span class="panel-title">Setup Breakdown — Today</span>
+          <button class="btn-sm btn-sm-promote" style="font-size:10px" onclick="fetchScalpingStatus()">↻ Refresh</button>
+        </div>
+        <div class="setup-grid" id="scalp-setup-grid">
+          <div class="setup-card"><div class="setup-name">Momentum Breakout</div><div class="setup-count" id="sc-momentum">0</div><div class="setup-pnl neu" id="sc-momentum-pnl">$0.00</div></div>
+          <div class="setup-card"><div class="setup-name">EMA Pullback</div><div class="setup-count" id="sc-ema">0</div><div class="setup-pnl neu" id="sc-ema-pnl">$0.00</div></div>
+          <div class="setup-card"><div class="setup-name">VWAP Reversion</div><div class="setup-count" id="sc-vwap">0</div><div class="setup-pnl neu" id="sc-vwap-pnl">$0.00</div></div>
+          <div class="setup-card"><div class="setup-name">RSI / BB Extreme</div><div class="setup-count" id="sc-rsi">0</div><div class="setup-pnl neu" id="sc-rsi-pnl">$0.00</div></div>
+        </div>
+
+        <!-- Today's trades -->
+        <div class="panel-header">
+          <span class="panel-title">Today's Scalp Trades</span>
+          <span class="panel-badge" id="scalp-trades-badge">0 trades</span>
+        </div>
+        <div class="table-card">
+          <table class="data-table">
+            <thead><tr>
+              <th>ID</th><th>Symbol</th><th>Side</th><th>Setup</th><th>Entry</th><th>Exit</th><th>P&amp;L</th><th>Status</th>
+            </tr></thead>
+            <tbody id="scalp-trades-body">
+              <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:16px">No scalp trades today — enable scalping above</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- EOD checklist panel (shown after fetch) -->
+        <div id="scalp-checklist-wrap" style="display:none">
+          <div class="panel-header">
+            <span class="panel-title">End-of-Day Checklist</span>
+            <span class="panel-badge" id="scalp-verdict-badge">—</span>
+          </div>
+          <div class="metric-card" style="margin-bottom:10px">
+            <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+              <span style="font-size:22px" id="scalp-verdict-icon">—</span>
+              <span style="font-size:16px;font-weight:800;color:var(--text)" id="scalp-verdict-text">—</span>
+            </div>
+            <div id="scalp-checklist-items" style="display:flex;flex-direction:column;gap:4px"></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label" style="margin-bottom:8px">Improvements for Tomorrow</div>
+            <div id="scalp-improvements" style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted);line-height:1.5"></div>
+          </div>
+        </div>
+
+      </div>
+
       <!-- AGENT MINDS TAB -->
       <div class="tab-panel" id="tab-minds">
         <div class="logs-container">
@@ -1162,6 +1521,7 @@ input[type="range"]::-webkit-slider-thumb {
                 <option>DecisionAgent</option><option>ExecutionAgent</option>
                 <option>EvolutionAgent</option><option>Engine</option>
                 <option>LangGraph</option>
+                <option>ScalpingAgent</option><option>ScalpingEngine</option>
               </select>
               <button class="btn-sm btn-sm-close" onclick="clearLogs()">Clear</button>
             </div>
@@ -1378,10 +1738,12 @@ let refreshTimer = null;
 const agentColors = {
   DataAgent: '#00d4ff', NewsAgent: '#a78bfa', DecisionAgent: '#fbbf24',
   ExecutionAgent: '#00e5a0', EvolutionAgent: '#fb923c', Engine: '#64748b', LangGraph: '#94a3b8',
+  ScalpingAgent: '#00e5a0', ScalpingEngine: '#10b981',
 };
 const agentIcons = {
   DataAgent: '📊', NewsAgent: '📰', DecisionAgent: '🧠',
   ExecutionAgent: '⚡', EvolutionAgent: '🧬', Engine: '🚀', LangGraph: '🕸️',
+  ScalpingAgent: '⚡', ScalpingEngine: '📈',
 };
 
 // ── WEBSOCKET ────────────────────────────────────────────────────────────────
@@ -2055,7 +2417,7 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + tab)?.classList.add('active');
   document.querySelectorAll('.tab-btn').forEach((btn, i) => {
-    const tabs = ['dashboard','minds','decisions','trades','evolution','analytics','backtest','logs'];
+    const tabs = ['dashboard','scalping','minds','decisions','trades','evolution','analytics','backtest','logs'];
     if (tabs[i] === tab) btn.classList.add('active');
   });
   currentTab = tab;
@@ -2063,11 +2425,12 @@ function switchTab(tab) {
   if (tab === 'dashboard') renderChart();
   if (tab === 'analytics') { fetchAnalytics(); }
   if (tab === 'minds') { fetchLogs(); }
+  if (tab === 'scalping') { fetchScalpingStatus(); }
 }
 
 // Proper tab switching by index
 document.querySelectorAll('.tab-btn').forEach((btn, i) => {
-  const tabs = ['dashboard','minds','decisions','trades','evolution','analytics','backtest','logs'];
+  const tabs = ['dashboard','scalping','minds','decisions','trades','evolution','analytics','backtest','logs'];
   btn.onclick = () => switchTab(tabs[i]);
 });
 
@@ -2355,6 +2718,215 @@ function onLLMChange() {
   }
 }
 
+// ── SCALPING ───────────────────────────────────────────────────────────────────
+let scalpStatus = null;
+let scalpRefreshTimer = null;
+
+function onTFModeChange() {
+  const auto = document.getElementById('scalp-tf-mode').value === 'auto';
+  document.getElementById('scalp-tf-options-wrap').style.display = auto ? '' : 'none';
+  document.getElementById('scalp-tf-fixed-wrap').style.display   = auto ? 'none' : '';
+  document.getElementById('scalp-noise-wrap').style.display      = auto ? '' : 'none';
+}
+
+async function enableScalping() {
+  const isAuto = document.getElementById('scalp-tf-mode').value === 'auto';
+  const body = {
+    symbols:           document.getElementById('scalp-symbols').value.trim() || 'BTC/USDT',
+    timeframe:         document.getElementById('scalp-tf').value,
+    account_size:      parseFloat(document.getElementById('scalp-account').value) || 1000,
+    max_daily_loss_pct: parseFloat(document.getElementById('scalp-daily-loss').value) / 100 || 0.03,
+    risk_per_trade_pct: parseFloat(document.getElementById('scalp-risk-pt').value) / 100 || 0.005,
+    max_trades_per_day: parseInt(document.getElementById('scalp-max-trades').value) || 20,
+    interval_seconds:  parseInt(document.getElementById('scalp-interval').value) || 30,
+    min_confidence:    parseFloat(document.getElementById('scalp-conf').value) || 0.55,
+    sl_pct:            parseFloat(document.getElementById('scalp-sl').value) / 100 || 0.002,
+    tp_multiplier:     parseFloat(document.getElementById('scalp-tp-mult').value) || 1.5,
+    tf_auto:           isAuto,
+    tf_options:        document.getElementById('scalp-tf-options').value.trim() || '1m,3m,5m',
+    tf_noise_filter:   parseFloat(document.getElementById('scalp-noise').value) / 100 || 0.015,
+  };
+  try {
+    await api('/api/scalping/enable', 'POST', body);
+    toast('Scalping enabled! Engine is now watching for setups.', 'success');
+    document.getElementById('scalp-pill').classList.add('active');
+    startScalpPolling();
+    fetchScalpingStatus();
+  } catch(e) { toast('Enable failed: ' + e.message, 'error'); }
+}
+
+async function disableScalping() {
+  try {
+    await api('/api/scalping/disable', 'POST');
+    toast('Scalping disabled.', 'info');
+    document.getElementById('scalp-pill').classList.remove('active');
+    stopScalpPolling();
+    fetchScalpingStatus();
+  } catch(e) { toast('Disable failed: ' + e.message, 'error'); }
+}
+
+async function scalpingCloseAll() {
+  if (!confirm('Close ALL open scalp positions at market price?')) return;
+  try {
+    const r = await api('/api/scalping/close-all', 'POST');
+    toast(`Closed ${r.positions_closed} position(s)`, r.positions_closed > 0 ? 'success' : 'info');
+    fetchScalpingStatus();
+    fetchTrades();
+  } catch(e) { toast('Close-all failed: ' + e.message, 'error'); }
+}
+
+async function scalpingResetKill() {
+  if (!confirm('Reset the daily kill switch? Only do this after deliberate review.')) return;
+  try {
+    await api('/api/scalping/reset-kill-switch', 'POST');
+    toast('Kill switch reset. Trade carefully.', 'info');
+    fetchScalpingStatus();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function fetchScalpingStatus() {
+  try {
+    const d = await api('/api/scalping/status');
+    scalpStatus = d;
+    renderScalpingStatus(d);
+  } catch(e) {}
+}
+
+async function fetchScalpingChecklist() {
+  try {
+    const d = await api('/api/scalping/checklist');
+    renderScalpingChecklist(d);
+    document.getElementById('scalp-checklist-wrap').style.display = 'block';
+    if (currentTab !== 'scalping') switchTab('scalping');
+  } catch(e) { toast('Checklist fetch failed: ' + e.message, 'error'); }
+}
+
+function renderScalpingStatus(d) {
+  if (!d) return;
+
+  // Kill banner
+  const killBanner = document.getElementById('scalp-kill-banner');
+  if (killBanner) {
+    killBanner.style.display = d.kill_active ? 'flex' : 'none';
+    if (d.kill_active) {
+      setText('scalp-kill-reason', `Daily loss: ${d.daily_pnl_usdt.toFixed(2)} USDT (limit: ${d.daily_loss_limit_usdt.toFixed(2)} USDT). All new entries blocked.`);
+    }
+  }
+
+  // Topbar pill
+  const pill = document.getElementById('scalp-pill');
+  if (pill) {
+    if (d.scalping_mode_active) {
+      pill.classList.add('active');
+      const pnl = d.daily_pnl_usdt || 0;
+      setText('scalp-pill-pnl', `${pnl >= 0 ? '+' : ''}$${fmt(Math.abs(pnl))}`);
+    } else {
+      pill.classList.remove('active');
+    }
+  }
+
+  // Metrics
+  const pnl = d.daily_pnl_usdt || 0;
+  const pnlEl = document.getElementById('scalp-daily-pnl');
+  if (pnlEl) { pnlEl.textContent = `$${fmt(pnl)}`; pnlEl.className = `metric-value ${pnl > 0 ? 'pos' : pnl < 0 ? 'neg' : 'neu'}`; }
+  setText('scalp-daily-pnl-pct', `${d.daily_pnl_pct >= 0 ? '+' : ''}${(d.daily_pnl_pct||0).toFixed(3)}%`);
+
+  setText('scalp-trades-today', d.total_trades_today || 0);
+  setText('scalp-trades-rem', `${d.trades_remaining_today} remaining`);
+  setText('scalp-wr-today', d.win_rate_today > 0 ? `${d.win_rate_today.toFixed(1)}%` : '—');
+  setText('scalp-wr-sub', `${d.wins_today||0}W / ${d.losses_today||0}L`);
+
+  const budgetLeft = d.daily_loss_budget_remaining_usdt || 0;
+  const budgetLimit = Math.abs(d.daily_loss_limit_usdt || 1);
+  const budgetEl = document.getElementById('scalp-budget-left');
+  if (budgetEl) { budgetEl.textContent = `$${fmt(budgetLeft)}`; budgetEl.className = `metric-value ${budgetLeft > budgetLimit * 0.5 ? 'pos' : budgetLeft > budgetLimit * 0.2 ? '' : 'neg'}`; }
+  setText('scalp-budget-limit', `Limit: $${fmt(budgetLimit)}`);
+
+  const sessionPnl = d.session_pnl_usdt || 0;
+  const sessEl = document.getElementById('scalp-session-pnl');
+  if (sessEl) { sessEl.textContent = `$${fmt(sessionPnl)}`; sessEl.className = `metric-value ${sessionPnl > 0 ? 'pos' : sessionPnl < 0 ? 'neg' : 'neu'}`; }
+  setText('scalp-session-trades', `${d.session_trades||0} session trades`);
+
+  const statusVal = document.getElementById('scalp-status-val');
+  if (statusVal) {
+    if (d.kill_active) { statusVal.textContent = 'HALTED'; statusVal.className = 'metric-value neg'; }
+    else if (d.scalping_mode_active) { statusVal.textContent = 'ACTIVE'; statusVal.className = 'metric-value pos'; }
+    else { statusVal.textContent = 'INACTIVE'; statusVal.className = 'metric-value'; }
+  }
+  const tfLabel = d.tf_auto ? `AUTO(${d.tf_options || '1m,3m,5m'})` : (d.timeframe || '5m');
+  setText('scalp-status-sub', d.scalping_mode_active ? `${tfLabel} · ${d.symbols}` : 'Enable scalping above');
+
+  // Budget bar
+  const usedPct = d.daily_loss_used_pct || 0;
+  const barFill = document.getElementById('scalp-bar-fill');
+  if (barFill) {
+    barFill.style.width = `${Math.min(usedPct, 100)}%`;
+    barFill.className = `budget-bar-fill ${usedPct > 80 ? 'danger' : usedPct > 50 ? 'warn' : ''}`;
+  }
+  setText('scalp-bar-label', `${usedPct.toFixed(1)}% used of ${d.max_daily_loss_pct}% limit`);
+  setText('scalp-bar-right', `$${fmt(budgetLimit)} limit`);
+
+  setText('scalp-trades-badge', `${d.closed_trades_today||0} trades`);
+}
+
+function renderScalpingChecklist(d) {
+  if (!d) return;
+
+  const verdictEl = document.getElementById('scalp-verdict-text');
+  const verdictBadge = document.getElementById('scalp-verdict-badge');
+  const iconEl = document.getElementById('scalp-verdict-icon');
+  if (verdictEl) verdictEl.textContent = d.verdict || '—';
+  if (verdictBadge) { verdictBadge.textContent = d.verdict || '—'; verdictBadge.style.color = d.verdict?.includes('GREEN') ? 'var(--green)' : 'var(--red)'; }
+  if (iconEl) iconEl.textContent = d.verdict?.includes('GREEN') ? '✅' : d.verdict?.includes('STOP') ? '🛑' : '📉';
+
+  const checkMap = {
+    all_positions_closed:     'All positions closed',
+    daily_loss_within_limit:  'Daily loss within limit',
+    trade_count_within_limit: 'Trade count within limit',
+    positive_day:             'Positive P&L day',
+  };
+  const items = document.getElementById('scalp-checklist-items');
+  if (items && d.checklist) {
+    items.innerHTML = Object.entries(checkMap).map(([k, label]) => {
+      const pass = d.checklist[k];
+      return `<div class="checklist-item ${pass ? 'pass' : 'fail'}">
+        <span class="check-icon">${pass ? '✅' : '❌'}</span>
+        <span class="check-label">${label}</span>
+      </div>`;
+    }).join('');
+  }
+
+  const impEl = document.getElementById('scalp-improvements');
+  if (impEl && d.improvements) {
+    impEl.innerHTML = d.improvements.map(i => `<div style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--accent)">→</span><span>${i}</span></div>`).join('');
+  }
+
+  // Setup breakdown from summary if available
+  if (d.setups_breakdown) {
+    const setupMap = {
+      momentum_breakout: ['sc-momentum', 'sc-momentum-pnl'],
+      ema_pullback:      ['sc-ema',      'sc-ema-pnl'],
+      vwap_reversion:    ['sc-vwap',     'sc-vwap-pnl'],
+      rsi_bb_extreme:    ['sc-rsi',      'sc-rsi-pnl'],
+    };
+    for (const [key, [countId, pnlId]] of Object.entries(setupMap)) {
+      const info = d.setups_breakdown[key];
+      setText(countId, info ? info.count : 0);
+      const pnl = info ? (info.pnl || 0) : 0;
+      const el = document.getElementById(pnlId);
+      if (el) { el.textContent = `$${fmt(pnl)}`; el.className = `setup-pnl ${pnl > 0 ? 'pos' : pnl < 0 ? 'neg' : 'neu'}`; }
+    }
+  }
+}
+
+function startScalpPolling() {
+  clearInterval(scalpRefreshTimer);
+  scalpRefreshTimer = setInterval(fetchScalpingStatus, 15000);
+}
+function stopScalpPolling() {
+  clearInterval(scalpRefreshTimer);
+}
+
 // ── INIT ───────────────────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
   onLLMChange(); // set initial hint
@@ -2368,6 +2940,9 @@ window.addEventListener('load', () => {
   setTimeout(() => { renderChart(); renderEquityCurve(); }, 500);
   // Periodic refresh even without engine (covers AUTO_START_ENGINE without clicking Start)
   setInterval(() => { fetchStatus(); fetchTrades(); fetchLogs(); fetchDecisions(); }, 30000);
+  // Scalping status poll (lighter, every 15s)
+  fetchScalpingStatus();
+  setInterval(fetchScalpingStatus, 15000);
 });
 </script>
 </body>

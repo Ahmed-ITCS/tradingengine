@@ -71,6 +71,58 @@ def node_fetch_news_sentiment(state: TradingGraphState) -> TradingGraphState:
         }
 
 
+def node_scalping_decision(state: TradingGraphState) -> TradingGraphState:
+    """Scalping decision node — uses rule-based ScalpingAgent instead of LLM."""
+    try:
+        from agents.scalping_agent import run_scalping_agent
+        from config import settings as _s
+
+        indicators = state.get("indicators", {})
+        if not indicators:
+            return {**state, "error": "No indicator data for scalping", "should_execute": False}
+
+        trading_state.add_log("LangGraph", "[Node: ScalpingAgent] Evaluating scalp setups...")
+
+        portfolio_dict = trading_state.to_dashboard_dict()
+        portfolio_dict["open_trades_count"] = len(trading_state.open_trades)
+
+        df = trading_state.last_ohlcv
+        if df is None:
+            return {**state, "error": "No OHLCV frame for scalping", "should_execute": False}
+
+        decision = run_scalping_agent(
+            symbol=state["symbol"],
+            indicators=indicators,
+            df=df,
+            portfolio_dict=portfolio_dict,
+        )
+
+        drawdown_ok = trading_state.portfolio.drawdown < settings.MAX_DRAWDOWN_KILL
+        signal_ok = decision.signal != TradeSignal.HOLD
+        confidence_ok = decision.confidence >= _s.SCALPING_MIN_CONFIDENCE
+        should_exec = signal_ok and confidence_ok and drawdown_ok
+
+        return {
+            **state,
+            "decision": {
+                "id":          decision.id,
+                "signal":      decision.signal.value,
+                "confidence":  decision.confidence,
+                "size_usdt":   decision.size_usdt,
+                "entry_price": decision.entry_price,
+                "stop_loss":   decision.stop_loss,
+                "take_profit": decision.take_profit,
+                "reasoning":   decision.reasoning,
+            },
+            "should_execute": should_exec,
+            "awaiting_approval": False,
+            "completed_nodes": state.get("completed_nodes", []) + ["scalping_agent"],
+        }
+    except Exception as e:
+        trading_state.add_log("LangGraph", f"[Node: ScalpingAgent] Error: {e}", level="error")
+        return {**state, "error": f"ScalpingAgent failed: {e}", "should_execute": False}
+
+
 def node_make_decision(state: TradingGraphState) -> TradingGraphState:
     try:
         indicators = state.get("indicators", {})
@@ -194,24 +246,37 @@ def route_after_decision(state: TradingGraphState) -> str:
 
 # ── Build graph ───────────────────────────────────────────────────────────────
 
-def build_trading_graph():
+def build_trading_graph(scalping: bool = False):
     if not LANGGRAPH_AVAILABLE:
         return None
     g = StateGraph(TradingGraphState)
-    g.add_node("data_agent",  node_fetch_market_data)
-    g.add_node("news_agent",  node_fetch_news_sentiment)
-    g.add_node("decision_agent", node_make_decision)
-    g.add_node("execute",     node_execute_trade)
-    g.add_node("monitor",     node_monitor_positions)
-    g.add_node("finalize",    node_finalize)
+    g.add_node("data_agent",     node_fetch_market_data)
+    g.add_node("execute",        node_execute_trade)
+    g.add_node("monitor",        node_monitor_positions)
+    g.add_node("finalize",       node_finalize)
     g.set_entry_point("data_agent")
-    g.add_edge("data_agent",  "news_agent")
-    g.add_edge("news_agent",  "decision_agent")
-    g.add_conditional_edges(
-        "decision_agent",
-        route_after_decision,
-        {"execute": "execute", "monitor": "monitor"},
-    )
+
+    if scalping:
+        # Scalping graph: skip news/LLM, go straight to rule-based scalping decision
+        g.add_node("scalping_agent", node_scalping_decision)
+        g.add_edge("data_agent", "scalping_agent")
+        g.add_conditional_edges(
+            "scalping_agent",
+            route_after_decision,
+            {"execute": "execute", "monitor": "monitor"},
+        )
+    else:
+        # Standard graph: data → news → LLM decision
+        g.add_node("news_agent",     node_fetch_news_sentiment)
+        g.add_node("decision_agent", node_make_decision)
+        g.add_edge("data_agent",  "news_agent")
+        g.add_edge("news_agent",  "decision_agent")
+        g.add_conditional_edges(
+            "decision_agent",
+            route_after_decision,
+            {"execute": "execute", "monitor": "monitor"},
+        )
+
     g.add_edge("execute",  "monitor")
     g.add_edge("monitor",  "finalize")
     g.add_edge("finalize", END)
@@ -219,17 +284,27 @@ def build_trading_graph():
 
 
 _compiled_graph = None
+_compiled_scalping_graph = None
 
 
 def run_langgraph_cycle(symbol: str, timeframe: str, cycle_id: str) -> Dict[str, Any]:
-    global _compiled_graph
+    global _compiled_graph, _compiled_scalping_graph
+
+    scalping_mode = settings.SCALPING_MODE
 
     if not LANGGRAPH_AVAILABLE:
         return _fallback_cycle(symbol, timeframe, cycle_id)
 
-    if _compiled_graph is None:
-        _compiled_graph = build_trading_graph()
-    if _compiled_graph is None:
+    if scalping_mode:
+        if _compiled_scalping_graph is None:
+            _compiled_scalping_graph = build_trading_graph(scalping=True)
+        graph = _compiled_scalping_graph
+    else:
+        if _compiled_graph is None:
+            _compiled_graph = build_trading_graph(scalping=False)
+        graph = _compiled_graph
+
+    if graph is None:
         return _fallback_cycle(symbol, timeframe, cycle_id)
 
     initial: TradingGraphState = {
@@ -249,8 +324,9 @@ def run_langgraph_cycle(symbol: str, timeframe: str, cycle_id: str) -> Dict[str,
     }
 
     try:
-        trading_state.add_log("LangGraph", f"Starting graph execution: {symbol} [{timeframe}]")
-        return _compiled_graph.invoke(initial)
+        mode_tag = "SCALPING" if scalping_mode else "standard"
+        trading_state.add_log("LangGraph", f"Starting {mode_tag} graph: {symbol} [{timeframe}]")
+        return graph.invoke(initial)
     except Exception as e:
         trading_state.add_log("LangGraph", f"Graph error: {e} — falling back", level="warn")
         return _fallback_cycle(symbol, timeframe, cycle_id)
