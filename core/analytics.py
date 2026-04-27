@@ -205,9 +205,17 @@ def _monthly_pnl(trades: List[Dict]) -> Dict[str, float]:
     """Group trade PnL by YYYY-MM."""
     monthly = {}
     for t in trades:
-        ts = t.get("exit_time") or t.get("entry_time") or ""
-        if len(ts) >= 7:
-            month = ts[:7]
+        ts = t.get("exit_time") or t.get("entry_time")
+
+        month = None
+        if isinstance(ts, datetime):
+            month = ts.strftime("%Y-%m")
+        elif isinstance(ts, str):
+            # Accept both ISO strings and plain "YYYY-MM..." strings.
+            if len(ts) >= 7:
+                month = ts[:7]
+
+        if month:
             monthly[month] = round(monthly.get(month, 0) + (t.get("pnl") or 0), 2)
     return dict(sorted(monthly.items()))
 
