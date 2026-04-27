@@ -84,6 +84,8 @@ class Settings(BaseSettings):
     # ATR multiplier for dynamic SL sizing: SL_distance = max(ATR * mult, price * SL_PCT)
     # Per-setup tuning: breakout=0.8x, pullback=1.0x, vwap_reversion=1.2x, rsi_extreme=1.5x
     SCALPING_ATR_SL_MULT: float = 0.8
+    # If true, scalping final decision is LLM-driven (Gemini/OpenAI/etc), with rule fallback.
+    SCALPING_USE_LLM: bool = True
 
     # ── Auto timeframe selection ───────────────────────────────────────────────
     # When True, the engine evaluates all SCALPING_TF_OPTIONS each cycle and

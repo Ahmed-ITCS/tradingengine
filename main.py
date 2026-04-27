@@ -551,6 +551,8 @@ def get_scalping_status():
     status["tf_auto"] = settings.SCALPING_TF_AUTO
     status["tf_options"] = settings.SCALPING_TF_OPTIONS
     status["tf_noise_filter"] = settings.SCALPING_TF_NOISE_FILTER
+    status["llm_enabled"] = settings.SCALPING_USE_LLM
+    status["llm_provider"] = settings.LLM_PROVIDER
     status["symbols"] = settings.SCALPING_SYMBOLS
     status["sl_pct"] = settings.SCALPING_SL_PCT
     status["tp_multiplier"] = settings.SCALPING_TP_MULTIPLIER

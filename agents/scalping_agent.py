@@ -1,6 +1,6 @@
 """
 EvoTrade AI - Scalping Decision Agent
-Rule-based, low-latency scalp signal engine for 1m/3m/5m crypto timeframes.
+LLM-assisted scalp signal engine for 1m/3m/5m crypto timeframes.
 
 Four auto-selected setups (engine picks the highest-scoring one each cycle):
   1. momentum_breakout  — ADX trending + volume spike + price breaks recent high/low
@@ -10,13 +10,16 @@ Four auto-selected setups (engine picks the highest-scoring one each cycle):
 
 Risk gate: every signal is checked against ScalpingRiskManager before firing.
 Position sizing is ATR-aware via ScalpingRiskManager.calculate_position_size().
+Rules generate candidate setups; LLM (Gemini/OpenAI/etc) makes the final call.
 """
 from __future__ import annotations
 
+import json
+import re
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, List
 
 import numpy as np
 import pandas as pd
@@ -25,6 +28,7 @@ from config import settings
 from core.state import trading_state, TradeDecision, TradeSignal
 from core.scalping_risk import scalping_risk
 from core.database import db
+from core.llm import get_llm_response
 
 
 # ── Setup result ─────────────────────────────────────────────────────────────
@@ -436,17 +440,22 @@ def _score_rsi_bb_extreme(df: pd.DataFrame, ind: Dict) -> SetupResult:
 
 # ── Setup selector ────────────────────────────────────────────────────────────
 
-def select_best_setup(df: pd.DataFrame, ind: Dict) -> Optional[SetupResult]:
-    """
-    Score all setups and return the best non-HOLD one above MIN_CONFIDENCE.
-    Returns None if no setup clears the confidence threshold.
-    """
-    candidates = [
+def evaluate_setups(df: pd.DataFrame, ind: Dict) -> List[SetupResult]:
+    """Return all scored setup candidates for this timeframe."""
+    return [
         _score_momentum_breakout(df, ind),
         _score_ema_pullback(df, ind),
         _score_vwap_reversion(df, ind),
         _score_rsi_bb_extreme(df, ind),
     ]
+
+
+def select_best_setup(df: pd.DataFrame, ind: Dict) -> Optional[SetupResult]:
+    """
+    Score all setups and return the best non-HOLD one above MIN_CONFIDENCE.
+    Returns None if no setup clears the confidence threshold.
+    """
+    candidates = evaluate_setups(df, ind)
 
     actionable = [c for c in candidates if c.signal != "HOLD" and c.score > 0]
     if not actionable:
@@ -463,6 +472,117 @@ def select_best_setup(df: pd.DataFrame, ind: Dict) -> Optional[SetupResult]:
         return None
 
     return best
+
+
+SCALPING_LLM_SYSTEM_PROMPT = """SCALPING_LLM_AGENT
+You are EvoTrade AI's intraday scalping decision engine.
+You must output STRICT JSON only.
+
+Goal:
+- Decide BUY / SELL / HOLD for a short-term scalp.
+- Pick the best setup among provided candidates.
+- Respect risk and avoid low-conviction entries.
+
+Rules:
+1) Prefer HOLD when market is noisy/choppy or edge is weak.
+2) Confidence must be between 0 and 1.
+3) If BUY/SELL, provide stop_loss and take_profit price levels.
+4) Use the provided setup candidates and indicator context.
+5) Keep rationale concise (1-2 sentences).
+
+Output JSON shape:
+{
+  "signal": "BUY|SELL|HOLD",
+  "confidence": 0.0,
+  "setup": "momentum_breakout|ema_pullback|vwap_reversion|rsi_bb_extreme|none",
+  "stop_loss": 0.0,
+  "take_profit": 0.0,
+  "reasoning": "..."
+}
+"""
+
+
+def _build_scalping_llm_prompt(
+    symbol: str,
+    timeframe: str,
+    indicators: Dict,
+    portfolio_dict: Dict,
+    candidates: List[SetupResult],
+    rule_best: Optional[SetupResult],
+) -> str:
+    close = indicators.get("close", 0)
+    candidate_lines = []
+    for c in candidates:
+        candidate_lines.append(
+            f"- {c.name}: signal={c.signal}, score={c.score:.1f}, conf={c.confidence:.2f}, "
+            f"SL={c.sl_price:.6f}, TP={c.tp_price:.6f}"
+        )
+    return f"""Make a scalping decision for {symbol} on {timeframe}.
+
+PRICE/INDICATORS:
+- close={close:.6f}
+- trend={indicators.get('trend')}
+- rsi={indicators.get('rsi')}
+- macd_hist={indicators.get('macd_hist')}
+- atr={indicators.get('atr')}
+- adx={indicators.get('adx')}
+- mfi={indicators.get('mfi')}
+- vwap={indicators.get('vwap')}
+- bb_upper={indicators.get('bb_upper')}
+- bb_lower={indicators.get('bb_lower')}
+
+PORTFOLIO/RISK:
+- equity={portfolio_dict.get('equity')}
+- drawdown={portfolio_dict.get('drawdown')}
+- open_trades={portfolio_dict.get('open_trades_count')}
+- min_confidence={settings.SCALPING_MIN_CONFIDENCE}
+- max_risk_per_trade_pct={settings.SCALPING_RISK_PER_TRADE_PCT}
+
+RULE-BASED CANDIDATES:
+{chr(10).join(candidate_lines)}
+
+RULE BEST:
+{rule_best.name if rule_best else 'none'} | signal={rule_best.signal if rule_best else 'HOLD'} | conf={rule_best.confidence if rule_best else 0}
+
+Return JSON only."""
+
+
+def _parse_scalping_llm_response(raw: str, candidates: List[SetupResult]) -> Dict:
+    setup_map = {c.name: c for c in candidates}
+    try:
+        match = re.search(r"\{.*\}", raw, re.DOTALL)
+        if not match:
+            raise ValueError("No JSON in response")
+        data = json.loads(match.group())
+    except Exception as exc:
+        trading_state.add_log("ScalpingAgent", f"LLM parse error: {exc} — fallback to rules", level="warn")
+        return {}
+
+    signal = str(data.get("signal", "HOLD")).upper().strip()
+    if signal not in ("BUY", "SELL", "HOLD"):
+        signal = "HOLD"
+
+    conf = float(data.get("confidence", 0.0) or 0.0)
+    conf = max(0.0, min(conf, 1.0))
+
+    setup_name = str(data.get("setup", "none")).strip()
+    chosen = setup_map.get(setup_name)
+
+    sl = data.get("stop_loss")
+    tp = data.get("take_profit")
+    sl = float(sl) if sl is not None else (chosen.sl_price if chosen else None)
+    tp = float(tp) if tp is not None else (chosen.tp_price if chosen else None)
+
+    reasoning = str(data.get("reasoning", "")).strip()
+    return {
+        "signal": signal,
+        "confidence": conf,
+        "setup": setup_name,
+        "chosen_setup": chosen,
+        "stop_loss": sl,
+        "take_profit": tp,
+        "reasoning": reasoning,
+    }
 
 
 # ── Auto timeframe selection ──────────────────────────────────────────────────
@@ -604,23 +724,82 @@ def run_scalping_agent(
         trading_state.add_log("ScalpingAgent", f"BLOCKED: {reason}", level="warn")
         return _hold_decision(symbol, indicators, f"Risk gate: {reason}")
 
-    # ── 2. Setup selection ────────────────────────────────────────────────────
+    # ── 2. Setup selection (rules) + optional LLM final decision ─────────────
+    candidates = evaluate_setups(df, indicators)
     best = select_best_setup(df, indicators)
 
-    if best is None:
-        trading_state.add_log("ScalpingAgent", "No high-confidence setup found — HOLD", level="info")
-        return _hold_decision(symbol, indicators, "No setup cleared confidence threshold")
+    llm_out = {}
+    if settings.SCALPING_USE_LLM:
+        try:
+            raw = get_llm_response(
+                _build_scalping_llm_prompt(
+                    symbol=symbol,
+                    timeframe=_tf_override or settings.SCALPING_TIMEFRAME,
+                    indicators=indicators,
+                    portfolio_dict=portfolio_dict,
+                    candidates=candidates,
+                    rule_best=best,
+                ),
+                system=SCALPING_LLM_SYSTEM_PROMPT,
+                max_tokens=450,
+            )
+            llm_out = _parse_scalping_llm_response(raw, candidates)
+            trading_state.add_log(
+                "ScalpingAgent",
+                f"LLM scalp raw (first 120): {raw[:120].replace(chr(10), ' ')}",
+                level="info",
+            )
+        except Exception as exc:
+            trading_state.add_log("ScalpingAgent", f"LLM call failed: {exc} — fallback to rules", level="warn")
+
+    # Choose final decision source
+    source = "RULE"
+    final_signal = best.signal if best else "HOLD"
+    final_conf = best.confidence if best else 0.0
+    final_setup = best
+    final_sl = best.sl_price if best else None
+    final_tp = best.tp_price if best else None
+    final_reasoning = best.reasoning if best else "No setup cleared confidence threshold"
+
+    if llm_out:
+        source = "LLM"
+        final_signal = llm_out.get("signal", final_signal)
+        final_conf = llm_out.get("confidence", final_conf)
+        # If LLM names a known setup, prefer it; else keep rule best.
+        if llm_out.get("chosen_setup") is not None:
+            final_setup = llm_out["chosen_setup"]
+            if final_signal in ("BUY", "SELL"):
+                final_signal = final_setup.signal if final_setup.signal in ("BUY", "SELL") else final_signal
+        final_sl = llm_out.get("stop_loss", final_sl)
+        final_tp = llm_out.get("take_profit", final_tp)
+        final_reasoning = llm_out.get("reasoning") or final_reasoning
+
+    # Ensure valid risk levels even if LLM output omitted them.
+    if final_setup is not None:
+        if final_sl is None:
+            final_sl = final_setup.sl_price
+        if final_tp is None:
+            final_tp = final_setup.tp_price
+
+    # Confidence gate remains strict for both LLM and rules.
+    if final_signal == "HOLD" or final_conf < settings.SCALPING_MIN_CONFIDENCE or final_setup is None:
+        reason = (
+            f"LLM/RULE no-trade: signal={final_signal}, conf={final_conf:.0%}, "
+            f"min={settings.SCALPING_MIN_CONFIDENCE:.0%}"
+        )
+        trading_state.add_log("ScalpingAgent", reason + " — HOLD", level="info")
+        return _hold_decision(symbol, indicators, reason)
 
     trading_state.add_log(
         "ScalpingAgent",
-        f"Setup selected: {best.name} | {best.signal} | score={best.score:.0f} conf={best.confidence:.0%}",
+        f"Setup selected ({source}): {final_setup.name} | {final_signal} | conf={final_conf:.0%}",
         level="success",
     )
 
     # ── 3. Position sizing ────────────────────────────────────────────────────
     sizing = scalping_risk.calculate_position_size(
         entry_price=indicators.get("close", 1),
-        sl_price=best.sl_price,
+        sl_price=float(final_sl),
         current_equity=portfolio_dict.get("equity", settings.SCALPING_ACCOUNT_SIZE),
     )
 
@@ -629,22 +808,24 @@ def run_scalping_agent(
         id=str(uuid.uuid4())[:8],
         timestamp=datetime.now(timezone.utc).isoformat(),
         symbol=symbol,
-        signal=TradeSignal(best.signal),
-        confidence=best.confidence,
+        signal=TradeSignal(final_signal),
+        confidence=final_conf,
         size_usdt=sizing["size_usdt"],
         entry_price=indicators.get("close", 0),
-        stop_loss=best.sl_price,
-        take_profit=best.tp_price,
+        stop_loss=float(final_sl),
+        take_profit=float(final_tp),
         reasoning=(
-            best.reasoning
+            final_reasoning
             + f" | tf={_tf_override or settings.SCALPING_TIMEFRAME}"
+            + f" | source={source}"
             + f" | risk=${sizing['risk_usdt']:.2f}"
             + f" | budget_left=${sizing['max_loss_today_remaining']:.2f}"
         ),
         agent_contributions={
-            "setup":     best.name,
+            "setup":     final_setup.name,
             "timeframe": _tf_override or settings.SCALPING_TIMEFRAME,
-            "score":     str(round(best.score, 1)),
+            "score":     str(round(final_setup.score, 1)),
+            "source":    source,
             "daily_pnl": str(round(scalping_risk.daily_status()["daily_pnl_usdt"], 2)),
         },
     )
@@ -652,18 +833,19 @@ def run_scalping_agent(
     db.save_decision(decision)
     trading_state.add_decision(decision)
 
-    emoji = {"BUY": "🟢", "SELL": "🔴", "HOLD": "🟡"}.get(best.signal, "⚪")
+    emoji = {"BUY": "🟢", "SELL": "🔴", "HOLD": "🟡"}.get(final_signal, "⚪")
     trading_state.add_log(
         "ScalpingAgent",
-        f"{emoji} SCALP {best.signal} | {best.name} | "
-        f"conf={best.confidence:.0%} size=${sizing['size_usdt']:.0f} "
-        f"SL={best.sl_price:.4f} TP={best.tp_price:.4f}",
+        f"{emoji} SCALP {final_signal} | {final_setup.name} | {source} | "
+        f"conf={final_conf:.0%} size=${sizing['size_usdt']:.0f} "
+        f"SL={float(final_sl):.4f} TP={float(final_tp):.4f}",
         data={
-            "signal":     best.signal,
-            "confidence": best.confidence,
-            "setup":      best.name,
+            "signal":     final_signal,
+            "confidence": final_conf,
+            "setup":      final_setup.name,
+            "source":     source,
             "size_usdt":  sizing["size_usdt"],
-            "reasoning":  best.reasoning,
+            "reasoning":  final_reasoning,
         },
         level="success",
     )
