@@ -89,6 +89,10 @@ class Settings(BaseSettings):
     # If true, LLM has final authority for BUY/SELL even when no rule setup qualifies.
     # Risk gates still apply (daily kill, confidence floor, position sizing, SL/TP sanity).
     SCALPING_LLM_FINAL_AUTHORITY: bool = True
+    # Anti-churn: require same directional LLM signal for N consecutive cycles before entry.
+    SCALPING_SIGNAL_CONFIRMATION_CYCLES: int = 2
+    # Anti-churn: block immediate opposite-direction entries for this many seconds.
+    SCALPING_REVERSAL_COOLDOWN_SECONDS: int = 120
 
     # ── Auto timeframe selection ───────────────────────────────────────────────
     # When True, the engine evaluates all SCALPING_TF_OPTIONS each cycle and

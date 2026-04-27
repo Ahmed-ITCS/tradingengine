@@ -31,6 +31,10 @@ from core.database import db
 from core.llm import get_llm_response
 
 
+# symbol -> {"last_signal": "BUY|SELL|HOLD", "streak": int}
+_signal_state: Dict[str, Dict[str, object]] = {}
+
+
 # ── Setup result ─────────────────────────────────────────────────────────────
 
 @dataclass
@@ -661,6 +665,63 @@ def _sanitize_sl_tp(
     return sl, tp
 
 
+def _parse_iso(ts: str) -> Optional[datetime]:
+    try:
+        return datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+    except Exception:
+        return None
+
+
+def _recent_executed_signal(symbol: str) -> Tuple[Optional[str], Optional[datetime]]:
+    """
+    Return most recent executed BUY/SELL decision for symbol from in-memory state.
+    """
+    with trading_state._lock:
+        for d in reversed(trading_state.decisions):
+            if d.symbol != symbol or not d.executed or d.signal == TradeSignal.HOLD:
+                continue
+            ts = _parse_iso(d.timestamp)
+            return d.signal.value, ts
+    return None, None
+
+
+def _passes_signal_stability_guards(symbol: str, signal: str) -> Tuple[bool, str]:
+    """
+    Anti-churn gate:
+    1) confirmation streak
+    2) reversal cooldown against last executed opposite side
+    """
+    if signal not in ("BUY", "SELL"):
+        return True, "ok"
+
+    # 1) confirmation streak (same direction must repeat N cycles)
+    state = _signal_state.get(symbol, {"last_signal": None, "streak": 0})
+    last_sig = state.get("last_signal")
+    streak = int(state.get("streak", 0))
+    if last_sig == signal:
+        streak += 1
+    else:
+        streak = 1
+    _signal_state[symbol] = {"last_signal": signal, "streak": streak}
+
+    need = max(1, int(settings.SCALPING_SIGNAL_CONFIRMATION_CYCLES))
+    if streak < need:
+        return False, f"awaiting confirmation: {signal} streak {streak}/{need}"
+
+    # 2) reversal cooldown
+    prev_sig, prev_ts = _recent_executed_signal(symbol)
+    if prev_sig and prev_ts and prev_sig != signal:
+        now = datetime.now(timezone.utc)
+        prev = prev_ts if prev_ts.tzinfo else prev_ts.replace(tzinfo=timezone.utc)
+        elapsed = (now - prev).total_seconds()
+        cooldown = max(0, int(settings.SCALPING_REVERSAL_COOLDOWN_SECONDS))
+        if elapsed < cooldown:
+            remain = int(cooldown - elapsed)
+            return False, f"reversal cooldown active: {remain}s remaining ({prev_sig}->{signal})"
+
+    return True, "ok"
+
+
 # ── Auto timeframe selection ──────────────────────────────────────────────────
 
 def _tf_noise_ratio(indicators: Dict) -> float:
@@ -878,6 +939,13 @@ def run_scalping_agent(
             f"LLM/RULE no-trade: signal={final_signal}, conf={final_conf:.0%}, "
             f"min={settings.SCALPING_MIN_CONFIDENCE:.0%}"
         )
+        trading_state.add_log("ScalpingAgent", reason + " — HOLD", level="info")
+        return _hold_decision(symbol, indicators, reason)
+
+    # Anti-churn gate to prevent rapid BUY/SELL flips every cycle.
+    ok_stability, stability_reason = _passes_signal_stability_guards(symbol, final_signal)
+    if not ok_stability:
+        reason = f"LLM/RULE no-trade: {stability_reason}"
         trading_state.add_log("ScalpingAgent", reason + " — HOLD", level="info")
         return _hold_decision(symbol, indicators, reason)
 
