@@ -585,6 +585,81 @@ def _parse_scalping_llm_response(raw: str, candidates: List[SetupResult]) -> Dic
     }
 
 
+def _best_candidate_for_signal(candidates: List[SetupResult], signal: str) -> Optional[SetupResult]:
+    """Pick best-scoring candidate that matches BUY/SELL signal."""
+    sig = (signal or "").upper()
+    matching = [c for c in candidates if c.signal == sig and c.score > 0]
+    if not matching:
+        return None
+    return max(matching, key=lambda c: c.score)
+
+
+def _sanitize_sl_tp(
+    signal: str,
+    entry_price: float,
+    stop_loss: Optional[float],
+    take_profit: Optional[float],
+    fallback_setup: Optional[SetupResult],
+) -> Tuple[Optional[float], Optional[float]]:
+    """
+    Ensure SL/TP geometry is valid:
+    - BUY: SL < entry < TP
+    - SELL: TP < entry < SL
+    If invalid/missing, repair with fallback setup or ATR floor percentages.
+    """
+    if signal not in ("BUY", "SELL"):
+        return None, None
+
+    sl = float(stop_loss) if stop_loss is not None else None
+    tp = float(take_profit) if take_profit is not None else None
+    e = float(entry_price or 0)
+    if e <= 0:
+        if fallback_setup:
+            return fallback_setup.sl_price, fallback_setup.tp_price
+        return None, None
+
+    # Fill missing from fallback if available.
+    if fallback_setup is not None:
+        if sl is None:
+            sl = float(fallback_setup.sl_price)
+        if tp is None:
+            tp = float(fallback_setup.tp_price)
+
+    # Hard fallback if still missing.
+    if sl is None or tp is None:
+        sl_dist = e * max(settings.SCALPING_SL_PCT, 0.001)
+        tp_dist = sl_dist * max(settings.SCALPING_TP_MULTIPLIER, 1.0)
+        if signal == "BUY":
+            sl = e - sl_dist
+            tp = e + tp_dist
+        else:
+            sl = e + sl_dist
+            tp = e - tp_dist
+
+    # Normalize ordering if LLM returned inverted levels.
+    if signal == "BUY":
+        if not (sl < e < tp):
+            low = min(sl, tp)
+            high = max(sl, tp)
+            sl, tp = low, high
+            # If entry still outside, re-anchor around entry.
+            if not (sl < e < tp):
+                dist = abs(e - low) if abs(e - low) > 0 else e * settings.SCALPING_SL_PCT
+                sl = e - dist
+                tp = e + dist * settings.SCALPING_TP_MULTIPLIER
+    else:  # SELL
+        if not (tp < e < sl):
+            low = min(sl, tp)
+            high = max(sl, tp)
+            tp, sl = low, high
+            if not (tp < e < sl):
+                dist = abs(high - e) if abs(high - e) > 0 else e * settings.SCALPING_SL_PCT
+                sl = e + dist
+                tp = e - dist * settings.SCALPING_TP_MULTIPLIER
+
+    return sl, tp
+
+
 # ── Auto timeframe selection ──────────────────────────────────────────────────
 
 def _tf_noise_ratio(indicators: Dict) -> float:
@@ -770,19 +845,27 @@ def run_scalping_agent(
             final_setup = llm_out["chosen_setup"]
             if final_signal in ("BUY", "SELL"):
                 final_signal = final_setup.signal if final_setup.signal in ("BUY", "SELL") else final_signal
+        elif final_setup is None and final_signal in ("BUY", "SELL"):
+            # LLM omitted setup field; infer best matching rule candidate by direction.
+            inferred = _best_candidate_for_signal(candidates, final_signal)
+            if inferred is not None:
+                final_setup = inferred
         final_sl = llm_out.get("stop_loss", final_sl)
         final_tp = llm_out.get("take_profit", final_tp)
         final_reasoning = llm_out.get("reasoning") or final_reasoning
 
     # Ensure valid risk levels even if LLM output omitted them.
-    if final_setup is not None:
-        if final_sl is None:
-            final_sl = final_setup.sl_price
-        if final_tp is None:
-            final_tp = final_setup.tp_price
+    entry = indicators.get("close", 0)
+    final_sl, final_tp = _sanitize_sl_tp(
+        signal=final_signal,
+        entry_price=entry,
+        stop_loss=final_sl,
+        take_profit=final_tp,
+        fallback_setup=final_setup,
+    )
 
     # Confidence gate remains strict for both LLM and rules.
-    if final_signal == "HOLD" or final_conf < settings.SCALPING_MIN_CONFIDENCE or final_setup is None:
+    if final_signal == "HOLD" or final_conf < settings.SCALPING_MIN_CONFIDENCE:
         reason = (
             f"LLM/RULE no-trade: signal={final_signal}, conf={final_conf:.0%}, "
             f"min={settings.SCALPING_MIN_CONFIDENCE:.0%}"
@@ -790,9 +873,15 @@ def run_scalping_agent(
         trading_state.add_log("ScalpingAgent", reason + " — HOLD", level="info")
         return _hold_decision(symbol, indicators, reason)
 
+    # If BUY/SELL but still missing valid SL/TP after sanitization, do not trade.
+    if final_signal in ("BUY", "SELL") and (final_sl is None or final_tp is None):
+        reason = f"LLM/RULE no-trade: missing SL/TP after sanitization ({final_signal})"
+        trading_state.add_log("ScalpingAgent", reason + " — HOLD", level="warn")
+        return _hold_decision(symbol, indicators, reason)
+
     trading_state.add_log(
         "ScalpingAgent",
-        f"Setup selected ({source}): {final_setup.name} | {final_signal} | conf={final_conf:.0%}",
+        f"Setup selected ({source}): {(final_setup.name if final_setup else 'llm_inferred')} | {final_signal} | conf={final_conf:.0%}",
         level="success",
     )
 
@@ -822,9 +911,9 @@ def run_scalping_agent(
             + f" | budget_left=${sizing['max_loss_today_remaining']:.2f}"
         ),
         agent_contributions={
-            "setup":     final_setup.name,
+            "setup":     final_setup.name if final_setup else "llm_inferred",
             "timeframe": _tf_override or settings.SCALPING_TIMEFRAME,
-            "score":     str(round(final_setup.score, 1)),
+            "score":     str(round(final_setup.score, 1)) if final_setup else "n/a",
             "source":    source,
             "daily_pnl": str(round(scalping_risk.daily_status()["daily_pnl_usdt"], 2)),
         },
@@ -836,13 +925,13 @@ def run_scalping_agent(
     emoji = {"BUY": "🟢", "SELL": "🔴", "HOLD": "🟡"}.get(final_signal, "⚪")
     trading_state.add_log(
         "ScalpingAgent",
-        f"{emoji} SCALP {final_signal} | {final_setup.name} | {source} | "
+        f"{emoji} SCALP {final_signal} | {(final_setup.name if final_setup else 'llm_inferred')} | {source} | "
         f"conf={final_conf:.0%} size=${sizing['size_usdt']:.0f} "
         f"SL={float(final_sl):.4f} TP={float(final_tp):.4f}",
         data={
             "signal":     final_signal,
             "confidence": final_conf,
-            "setup":      final_setup.name,
+            "setup":      final_setup.name if final_setup else "llm_inferred",
             "source":     source,
             "size_usdt":  sizing["size_usdt"],
             "reasoning":  final_reasoning,
