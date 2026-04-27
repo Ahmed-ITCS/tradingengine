@@ -2721,6 +2721,101 @@ function onLLMChange() {
 // ── SCALPING ───────────────────────────────────────────────────────────────────
 let scalpStatus = null;
 let scalpRefreshTimer = null;
+const SCALP_PREF_KEY = 'evotrade.scalping.pref.v1';
+
+function getScalpingFormConfig() {
+  const isAuto = document.getElementById('scalp-tf-mode').value === 'auto';
+  return {
+    symbols: document.getElementById('scalp-symbols').value.trim() || 'BTC/USDT',
+    timeframe: document.getElementById('scalp-tf').value,
+    account_size: parseFloat(document.getElementById('scalp-account').value) || 1000,
+    max_daily_loss_pct: parseFloat(document.getElementById('scalp-daily-loss').value) / 100 || 0.03,
+    risk_per_trade_pct: parseFloat(document.getElementById('scalp-risk-pt').value) / 100 || 0.005,
+    max_trades_per_day: parseInt(document.getElementById('scalp-max-trades').value) || 20,
+    interval_seconds: parseInt(document.getElementById('scalp-interval').value) || 30,
+    min_confidence: parseFloat(document.getElementById('scalp-conf').value) || 0.55,
+    sl_pct: parseFloat(document.getElementById('scalp-sl').value) / 100 || 0.002,
+    tp_multiplier: parseFloat(document.getElementById('scalp-tp-mult').value) || 1.5,
+    tf_auto: isAuto,
+    tf_options: document.getElementById('scalp-tf-options').value.trim() || '1m,3m,5m',
+    tf_noise_filter: parseFloat(document.getElementById('scalp-noise').value) / 100 || 0.015,
+  };
+}
+
+function persistScalpingPref(enabled, config) {
+  try {
+    localStorage.setItem(
+      SCALP_PREF_KEY,
+      JSON.stringify({
+        enabled: !!enabled,
+        config: config || getScalpingFormConfig(),
+        ts: Date.now(),
+      })
+    );
+  } catch (_) {}
+}
+
+function loadScalpingPref() {
+  try {
+    const raw = localStorage.getItem(SCALP_PREF_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (_) {
+    return null;
+  }
+}
+
+function applyScalpingConfigToForm(cfg) {
+  if (!cfg) return;
+  if (cfg.symbols) document.getElementById('scalp-symbols').value = cfg.symbols;
+  if (cfg.timeframe) document.getElementById('scalp-tf').value = cfg.timeframe;
+  if (cfg.account_size) document.getElementById('scalp-account').value = cfg.account_size;
+  if (cfg.max_daily_loss_pct != null) document.getElementById('scalp-daily-loss').value = (cfg.max_daily_loss_pct * 100).toFixed(2).replace(/\.00$/, '');
+  if (cfg.risk_per_trade_pct != null) document.getElementById('scalp-risk-pt').value = (cfg.risk_per_trade_pct * 100).toFixed(2).replace(/\.00$/, '');
+  if (cfg.max_trades_per_day) document.getElementById('scalp-max-trades').value = cfg.max_trades_per_day;
+  if (cfg.interval_seconds) document.getElementById('scalp-interval').value = cfg.interval_seconds;
+  if (cfg.min_confidence != null) document.getElementById('scalp-conf').value = cfg.min_confidence;
+  if (cfg.sl_pct != null) document.getElementById('scalp-sl').value = (cfg.sl_pct * 100).toFixed(2).replace(/\.00$/, '');
+  if (cfg.tp_multiplier != null) document.getElementById('scalp-tp-mult').value = cfg.tp_multiplier;
+  if (cfg.tf_options) document.getElementById('scalp-tf-options').value = cfg.tf_options;
+  if (cfg.tf_noise_filter != null) document.getElementById('scalp-noise').value = (cfg.tf_noise_filter * 100).toFixed(2).replace(/\.00$/, '');
+  if (cfg.tf_auto != null) {
+    document.getElementById('scalp-tf-mode').value = cfg.tf_auto ? 'auto' : 'fixed';
+  }
+  onTFModeChange();
+}
+
+async function bootstrapScalpingPersistence() {
+  const pref = loadScalpingPref();
+  if (pref?.config) applyScalpingConfigToForm(pref.config);
+
+  let status = null;
+  try {
+    status = await api('/api/scalping/status');
+    scalpStatus = status;
+    renderScalpingStatus(status);
+  } catch (_) {}
+
+  // If backend is already active, keep polling and sync local preference.
+  if (status?.scalping_mode_active) {
+    startScalpPolling();
+    persistScalpingPref(true, {
+      ...getScalpingFormConfig(),
+      tf_auto: status.tf_auto,
+      tf_options: status.tf_options,
+      tf_noise_filter: status.tf_noise_filter,
+    });
+    return;
+  }
+
+  // If user previously enabled scalping, re-enable automatically after refresh.
+  if (pref?.enabled) {
+    try {
+      await enableScalping();
+      toast('Scalping session restored after refresh.', 'info');
+    } catch (_) {}
+  }
+}
 
 function onTFModeChange() {
   const auto = document.getElementById('scalp-tf-mode').value === 'auto';
@@ -2730,26 +2825,12 @@ function onTFModeChange() {
 }
 
 async function enableScalping() {
-  const isAuto = document.getElementById('scalp-tf-mode').value === 'auto';
-  const body = {
-    symbols:           document.getElementById('scalp-symbols').value.trim() || 'BTC/USDT',
-    timeframe:         document.getElementById('scalp-tf').value,
-    account_size:      parseFloat(document.getElementById('scalp-account').value) || 1000,
-    max_daily_loss_pct: parseFloat(document.getElementById('scalp-daily-loss').value) / 100 || 0.03,
-    risk_per_trade_pct: parseFloat(document.getElementById('scalp-risk-pt').value) / 100 || 0.005,
-    max_trades_per_day: parseInt(document.getElementById('scalp-max-trades').value) || 20,
-    interval_seconds:  parseInt(document.getElementById('scalp-interval').value) || 30,
-    min_confidence:    parseFloat(document.getElementById('scalp-conf').value) || 0.55,
-    sl_pct:            parseFloat(document.getElementById('scalp-sl').value) / 100 || 0.002,
-    tp_multiplier:     parseFloat(document.getElementById('scalp-tp-mult').value) || 1.5,
-    tf_auto:           isAuto,
-    tf_options:        document.getElementById('scalp-tf-options').value.trim() || '1m,3m,5m',
-    tf_noise_filter:   parseFloat(document.getElementById('scalp-noise').value) / 100 || 0.015,
-  };
+  const body = getScalpingFormConfig();
   try {
     await api('/api/scalping/enable', 'POST', body);
     toast('Scalping enabled! Engine is now watching for setups.', 'success');
     document.getElementById('scalp-pill').classList.add('active');
+    persistScalpingPref(true, body);
     startScalpPolling();
     fetchScalpingStatus();
   } catch(e) { toast('Enable failed: ' + e.message, 'error'); }
@@ -2760,6 +2841,7 @@ async function disableScalping() {
     await api('/api/scalping/disable', 'POST');
     toast('Scalping disabled.', 'info');
     document.getElementById('scalp-pill').classList.remove('active');
+    persistScalpingPref(false, getScalpingFormConfig());
     stopScalpPolling();
     fetchScalpingStatus();
   } catch(e) { toast('Disable failed: ' + e.message, 'error'); }
@@ -2855,6 +2937,14 @@ function renderScalpingStatus(d) {
   }
   const tfLabel = d.tf_auto ? `AUTO(${d.tf_options || '1m,3m,5m'})` : (d.timeframe || '5m');
   setText('scalp-status-sub', d.scalping_mode_active ? `${tfLabel} · ${d.symbols}` : 'Enable scalping above');
+  // Keep form controls aligned with backend status across refreshes.
+  if (typeof d.tf_auto === 'boolean') {
+    document.getElementById('scalp-tf-mode').value = d.tf_auto ? 'auto' : 'fixed';
+    if (d.tf_options) document.getElementById('scalp-tf-options').value = d.tf_options;
+    if (d.tf_noise_filter != null) document.getElementById('scalp-noise').value = (d.tf_noise_filter * 100).toFixed(2).replace(/\.00$/, '');
+    onTFModeChange();
+  }
+  persistScalpingPref(!!d.scalping_mode_active, getScalpingFormConfig());
 
   // Budget bar
   const usedPct = d.daily_loss_used_pct || 0;
@@ -2930,6 +3020,7 @@ function stopScalpPolling() {
 // ── INIT ───────────────────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
   onLLMChange(); // set initial hint
+  onTFModeChange();
   connectWS();
   fetchStatus();
   fetchTrades();
@@ -2941,7 +3032,7 @@ window.addEventListener('load', () => {
   // Periodic refresh even without engine (covers AUTO_START_ENGINE without clicking Start)
   setInterval(() => { fetchStatus(); fetchTrades(); fetchLogs(); fetchDecisions(); }, 30000);
   // Scalping status poll (lighter, every 15s)
-  fetchScalpingStatus();
+  bootstrapScalpingPersistence();
   setInterval(fetchScalpingStatus, 15000);
 });
 </script>
