@@ -38,6 +38,7 @@ class Settings(BaseSettings):
 
     # Execution gate (graph + execution agent). Override via .env without code edits.
     MIN_TRADE_CONFIDENCE: float = 0.60
+    MAX_OPEN_TRADES_TOTAL: int = 100
     MAX_OPEN_TRADES_PER_SYMBOL: int = 100
     TRADE_COOLDOWN_SECONDS: int = 0
     # Non-paper: human_review auto-approves at or above this confidence.
