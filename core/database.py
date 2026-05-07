@@ -207,6 +207,15 @@ class Database:
                 }
             return {}
 
+    def clear_all_data(self) -> None:
+        """Delete all persisted runtime data while keeping schema intact."""
+        with self._lock:
+            self._conn.execute("DELETE FROM trades")
+            self._conn.execute("DELETE FROM decisions")
+            self._conn.execute("DELETE FROM strategies")
+            self._conn.execute("DELETE FROM equity_curve")
+            self._conn.execute("DELETE FROM system_logs")
+
 
 # Global singleton
 db = Database()
