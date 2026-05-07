@@ -289,6 +289,13 @@ class EngineConfig(BaseModel):
     engine_interval_seconds: Optional[int] = None
 
 
+class ResetRequest(BaseModel):
+    clear_memory: bool = True
+    clear_database: bool = True
+    clear_log_file: bool = False
+    stop_engine: bool = True
+
+
 @app.post("/api/engine/start")
 def start_engine(config: EngineConfig):
     if config.symbol:
@@ -328,6 +335,58 @@ def start_engine(config: EngineConfig):
 def stop_engine():
     engine.stop()
     return {"status": "stopped"}
+
+
+@app.post("/api/admin/reset")
+def admin_reset(payload: ResetRequest):
+    """
+    Reset runtime and persisted state for a clean restart.
+    """
+    if payload.stop_engine:
+        try:
+            engine.stop()
+        except Exception:
+            pass
+
+    if payload.clear_memory:
+        with trading_state._lock:
+            trading_state.status = EngineStatus.STOPPED
+            trading_state.portfolio = trading_state.portfolio.__class__()
+            trading_state.open_trades = []
+            trading_state.closed_trades = []
+            trading_state.decisions = []
+            trading_state.strategies = []
+            trading_state.agent_logs = []
+            trading_state.current_price = 0.0
+            trading_state.last_ohlcv = None
+            trading_state.last_indicators = None
+            trading_state.last_news_sentiment = None
+            trading_state.last_decision = None
+            trading_state.equity_curve = []
+            trading_state.price_history = []
+            trading_state._dynamic_min_confidence = None
+            while not trading_state.broadcast_queue.empty():
+                try:
+                    trading_state.broadcast_queue.get_nowait()
+                except Exception:
+                    break
+
+    if payload.clear_database:
+        db.clear_all_data()
+
+    if payload.clear_log_file:
+        try:
+            open(settings.LOG_FILE, "w", encoding="utf-8").close()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to clear log file: {e}")
+
+    return {
+        "status": "reset_complete",
+        "clear_memory": payload.clear_memory,
+        "clear_database": payload.clear_database,
+        "clear_log_file": payload.clear_log_file,
+        "engine_stopped": payload.stop_engine,
+    }
 
 
 @app.post("/api/engine/evolve")
