@@ -300,9 +300,21 @@ def run_data_agent(symbol: str, timeframe: str) -> Dict[str, Any]:
     trading_state.add_log("DataAgent", f"Fetching OHLCV: {symbol} [{timeframe}]")
 
     df = fetch_ohlcv(symbol, timeframe, limit=200)
-    if df is None or len(df) < 50:
-        trading_state.add_log("DataAgent", "Insufficient data", level="error")
+    # 14-period indicators need at least ~15 bars; testnet feeds can be shallow.
+    min_candles_required = 15
+    if df is None or len(df) < min_candles_required:
+        trading_state.add_log(
+            "DataAgent",
+            f"Insufficient data ({0 if df is None else len(df)} candles, need >= {min_candles_required})",
+            level="error",
+        )
         return {}
+    if len(df) < 50:
+        trading_state.add_log(
+            "DataAgent",
+            f"Limited history ({len(df)} candles) — computing partial indicators",
+            level="warn",
+        )
 
     df, indicators = compute_indicators(df)
     chart_data = get_chart_data(df, indicators)
