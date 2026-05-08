@@ -1058,11 +1058,6 @@ input[type="range"]::-webkit-slider-thumb {
             <div class="metric-sub" id="m-winrate-sub">0W / 0L</div>
           </div>
           <div class="metric-card">
-            <div class="metric-label">Drawdown</div>
-            <div class="metric-value" id="m-dd">0.00%</div>
-            <div class="metric-sub">Kill at 10%</div>
-          </div>
-          <div class="metric-card">
             <div class="metric-label">Open Trades</div>
             <div class="metric-value" id="m-open">0</div>
             <div class="metric-sub" id="m-total-trades">0 total</div>
@@ -1283,15 +1278,11 @@ input[type="range"]::-webkit-slider-thumb {
             <div id="analytics-equity-chart" style="height:200px"></div>
           </div>
           <div class="chart-container">
-            <div class="chart-header"><span class="chart-title">Drawdown</span></div>
-            <div id="analytics-dd-chart" style="height:200px"></div>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div class="chart-container">
             <div class="chart-header"><span class="chart-title">Monthly PnL</span></div>
             <div id="analytics-monthly-chart" style="height:200px"></div>
           </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr;gap:12px">
           <div class="metric-card" style="display:flex;flex-direction:column;gap:10px">
             <div class="metric-label">Streak & Consecutive</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1646,7 +1637,6 @@ function updateDashboardFromPayload(d) {
   const p = d.portfolio || {};
   const equity = p.equity || 100;
   const pnl = (p.realized_pnl || 0) + (p.unrealized_pnl || 0);
-  const dd = (p.drawdown || 0) * 100;
   const wr = p.win_rate || 0;
 
   setText('top-equity', `$${fmt(equity)}`);
@@ -1661,9 +1651,6 @@ function updateDashboardFromPayload(d) {
   setText('m-pnl-sub', `${d.closed_trades_count || 0} trades closed`);
   setText('m-winrate', p.trade_count > 0 ? `${(wr*100).toFixed(1)}%` : '—');
   setText('m-winrate-sub', `${p.win_count||0}W / ${p.loss_count||0}L`);
-  setText('m-dd', `${dd.toFixed(2)}%`);
-  const ddEl = document.getElementById('m-dd');
-  if (ddEl) ddEl.className = `metric-value ${dd > 5 ? 'neg' : dd > 2 ? '' : 'pos'}`;
   setText('m-open', d.open_trades_count || 0);
   setText('m-total-trades', `${p.trade_count || 0} total`);
 
@@ -1964,7 +1951,6 @@ function renderStrategies() {
   el.innerHTML = allStrategies.map(s => {
     const indicators = Array.isArray(s.indicators) ? s.indicators : [];
     const ret = s.backtest_return || 0;
-    const dd = s.backtest_drawdown || 0;
     return `
       <div class="strategy-card ${s.status}">
         <div class="strategy-header">
@@ -1989,10 +1975,6 @@ function renderStrategies() {
           <div class="strat-metric">
             <span class="sm-label">Win Rate</span>
             <span class="sm-val">${(s.backtest_winrate||0).toFixed(1)}%</span>
-          </div>
-          <div class="strat-metric">
-            <span class="sm-label">Max DD</span>
-            <span class="sm-val neg">${dd.toFixed(1)}%</span>
           </div>
         </div>
         <div class="strategy-indicators">
@@ -2212,22 +2194,6 @@ function renderAnalytics(d) {
     }, {displayModeBar: false, responsive: true});
   }
 
-  // Drawdown
-  const dd = d.drawdown_sparkline || [];
-  if (dd.length > 1) {
-    Plotly.react('analytics-dd-chart', [{
-      type: 'scatter', y: dd, mode: 'lines',
-      line: { color: '#ff4560', width: 1.5 },
-      fill: 'tozeroy', fillcolor: 'rgba(255,69,96,0.1)'
-    }], {
-      paper_bgcolor: 'transparent', plot_bgcolor: 'transparent',
-      margin: {l:50,r:10,t:10,b:30},
-      xaxis: { showgrid: false, tickfont: {color:'#64748b',size:9} },
-      yaxis: { gridcolor: '#1e2d45', tickfont: {color:'#64748b',size:9}, ticksuffix:'%' },
-      showlegend: false
-    }, {displayModeBar: false, responsive: true});
-  }
-
   // Monthly PnL bars
   const monthly = d.monthly_pnl || {};
   const months = Object.keys(monthly);
@@ -2294,7 +2260,6 @@ function renderBacktestResults(results, symbol, tf) {
       <td class="${ret>=0?'pos':'neg'}">${ret.toFixed(1)}%</td>
       <td class="${(r.sharpe_ratio||0)>1?'pos':'neg'}">${(r.sharpe_ratio||0).toFixed(2)}</td>
       <td class="${(r.win_rate_pct||0)>50?'pos':''}">${(r.win_rate_pct||0).toFixed(1)}%</td>
-      <td class="neg">${(r.max_drawdown_pct||0).toFixed(1)}%</td>
       <td>${r.total_trades||0}</td>
       <td>${(r.profit_factor||0).toFixed(2)}</td>
       <td class="${score>0?'pos':'neg'}" style="font-weight:700">${score.toFixed(1)}</td>
@@ -2306,7 +2271,7 @@ function renderBacktestResults(results, symbol, tf) {
       <table class="data-table">
         <thead><tr>
           <th>Strategy</th><th>Return</th><th>Sharpe</th><th>Win Rate</th>
-          <th>Max DD</th><th>Trades</th><th>Profit Factor</th><th>Score</th>
+          <th>Trades</th><th>Profit Factor</th><th>Score</th>
         </tr></thead>
         <tbody>${tableRows}</tbody>
       </table>

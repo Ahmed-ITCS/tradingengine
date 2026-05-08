@@ -88,7 +88,6 @@ Open **http://localhost:8000** in your browser.
 ### Risk Management
 
 - Configurable max risk per trade (default 2%)
-- Global drawdown kill-switch (default 10%)
 - Confidence threshold (only executes ≥10% confidence)
 - No duplicate positions per symbol
 
@@ -102,7 +101,6 @@ Open **http://localhost:8000** in your browser.
 | `ENGINE_INTERVAL_SECONDS`  | `30`        | How often the trading cycle runs   |
 | `EVOLUTION_INTERVAL_HOURS` | `6`         | Auto-evolution frequency           |
 | `MAX_RISK_PER_TRADE`       | `0.02`      | 2% equity per trade                |
-| `MAX_DRAWDOWN_KILL`        | `0.10`      | Kill switch at 10% drawdown        |
 
 ## 📡 API Reference
 

@@ -1,6 +1,6 @@
 """
 EvoTrade AI - Analytics Module
-Computes rolling performance metrics, Sharpe, Sortino, drawdown series,
+Computes rolling performance metrics, Sharpe, Sortino,
 and generates report-ready data structures.
 """
 from __future__ import annotations
@@ -61,12 +61,6 @@ def compute_portfolio_metrics(
     current_equity = float(eq_vals[-1])
     total_return_pct = (current_equity / initial_capital - 1) * 100
 
-    # Drawdown series
-    peak = np.maximum.accumulate(eq_vals)
-    dd_series = (eq_vals - peak) / np.where(peak > 0, peak, 1) * 100
-    max_drawdown_pct = float(dd_series.min())
-    current_drawdown_pct = float(dd_series[-1])
-
     # Bar returns for Sharpe/Sortino
     if len(eq_vals) > 1:
         bar_returns = np.diff(eq_vals) / np.where(eq_vals[:-1] > 0, eq_vals[:-1], 1)
@@ -107,7 +101,7 @@ def compute_portfolio_metrics(
         monthly_pnl = {}
         current_streak = {"type": "none", "count": 0}
 
-    calmar = (total_return_pct / abs(max_drawdown_pct)) if max_drawdown_pct < 0 else 0.0
+    calmar = 0.0
 
     # ── Equity sparkline (downsampled to 50 points) ────────────────────────────
     if len(eq_vals) > 50:
@@ -115,13 +109,6 @@ def compute_portfolio_metrics(
         sparkline = eq_vals[::step].tolist()
     else:
         sparkline = eq_vals.tolist()
-
-    # ── Drawdown sparkline ────────────────────────────────────────────────────
-    if len(dd_series) > 50:
-        step = len(dd_series) // 50
-        dd_sparkline = dd_series[::step].tolist()
-    else:
-        dd_sparkline = dd_series.tolist()
 
     payload = {
         # Capital
@@ -135,10 +122,6 @@ def compute_portfolio_metrics(
         "sortino_ratio": round(_json_safe_float(sortino), 3),
         "calmar_ratio": round(_json_safe_float(calmar), 3),
         "volatility_ann_pct": round(_json_safe_float(volatility), 2),
-
-        # Drawdown
-        "max_drawdown_pct": round(_json_safe_float(max_drawdown_pct), 2),
-        "current_drawdown_pct": round(_json_safe_float(current_drawdown_pct), 2),
 
         # Trade stats
         "total_trades": len(closed_trades),
@@ -156,7 +139,6 @@ def compute_portfolio_metrics(
 
         # Charts
         "equity_sparkline": [round(_json_safe_float(v, default=initial_capital), 2) for v in sparkline],
-        "drawdown_sparkline": [round(_json_safe_float(v), 2) for v in dd_sparkline],
         "monthly_pnl": monthly_pnl,
     }
     return _json_safe_tree(payload)
@@ -236,8 +218,6 @@ def _empty_metrics(initial_capital: float) -> Dict[str, Any]:
         "sortino_ratio": 0.0,
         "calmar_ratio": 0.0,
         "volatility_ann_pct": 0.0,
-        "max_drawdown_pct": 0.0,
-        "current_drawdown_pct": 0.0,
         "total_trades": 0,
         "win_rate_pct": 0.0,
         "profit_factor": 0.0,
@@ -251,6 +231,5 @@ def _empty_metrics(initial_capital: float) -> Dict[str, Any]:
         "max_consecutive_losses": 0,
         "current_streak": {"type": "none", "count": 0},
         "equity_sparkline": [initial_capital],
-        "drawdown_sparkline": [0.0],
         "monthly_pnl": {},
     }

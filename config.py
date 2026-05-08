@@ -33,7 +33,6 @@ class Settings(BaseSettings):
     DEFAULT_SYMBOL: str = "BTC/USDT"
     DEFAULT_TIMEFRAME: str = "1h"
     MAX_RISK_PER_TRADE: float = 0.02      # 2% per trade
-    MAX_DRAWDOWN_KILL: float = 0.10       # 10% global drawdown kill
     INITIAL_CAPITAL: float = 100.0
 
     # Execution gate (graph + execution agent). Override via .env without code edits.

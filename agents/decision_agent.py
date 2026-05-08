@@ -77,7 +77,6 @@ Risk Factors: {', '.join(sentiment.get('risk_factors', []))}
 Equity: ${portfolio.get('equity', 10000):.2f}
 Unrealized PnL: ${portfolio.get('unrealized_pnl', 0):.2f}
 Win Rate: {portfolio.get('win_rate', 0)*100:.1f}%
-Current Drawdown: {portfolio.get('drawdown', 0)*100:.2f}%
 Open Positions: {portfolio.get('open_trades_count', 0)}
 Max Risk Per Trade: {settings.MAX_RISK_PER_TRADE*100:.1f}%
 """
@@ -121,14 +120,6 @@ def parse_decision_response(
     # Strip anything that isn't BUY/SELL/HOLD
     if signal_str not in ("BUY", "SELL", "HOLD"):
         signal_str = "BUY"
-
-    # Kill switch
-    if portfolio.get("drawdown", 0) >= settings.MAX_DRAWDOWN_KILL:
-        signal_str = "HOLD"
-        data["reasoning"] = (
-            f"KILL SWITCH: drawdown {portfolio.get('drawdown',0)*100:.1f}% "
-            f">= {settings.MAX_DRAWDOWN_KILL*100}% limit. " + data.get("reasoning", "")
-        )
 
     try:
         signal = TradeSignal(signal_str)

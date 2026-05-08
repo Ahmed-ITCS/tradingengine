@@ -92,7 +92,6 @@ class PortfolioState:
     equity: float = settings.INITIAL_CAPITAL
     unrealized_pnl: float = 0.0
     realized_pnl: float = 0.0
-    drawdown: float = 0.0
     peak_equity: float = settings.INITIAL_CAPITAL
     win_count: int = 0
     loss_count: int = 0
@@ -248,10 +247,6 @@ class TradingState:
 
                     if self.portfolio.equity > self.portfolio.peak_equity:
                         self.portfolio.peak_equity = self.portfolio.equity
-                    self.portfolio.drawdown = (
-                        (self.portfolio.peak_equity - self.portfolio.equity)
-                        / self.portfolio.peak_equity
-                    )
 
                     self.closed_trades.append(t)
                     self.open_trades.pop(i)
@@ -298,7 +293,6 @@ class TradingState:
                     "equity": self.portfolio.equity,
                     "unrealized_pnl": self.portfolio.unrealized_pnl,
                     "realized_pnl": self.portfolio.realized_pnl,
-                    "drawdown": self.portfolio.drawdown,
                     "win_rate": self.portfolio.win_rate,
                     "trade_count": self.portfolio.trade_count,
                 },

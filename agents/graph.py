@@ -92,10 +92,9 @@ def node_make_decision(state: TradingGraphState) -> TradingGraphState:
         )
 
         min_confidence = trading_state.effective_min_trade_confidence()
-        drawdown_ok    = trading_state.portfolio.drawdown < settings.MAX_DRAWDOWN_KILL
         signal_ok      = decision.signal != TradeSignal.HOLD
         confidence_ok  = decision.confidence >= min_confidence
-        should_exec    = signal_ok and confidence_ok and drawdown_ok
+        should_exec    = signal_ok and confidence_ok
 
         trading_state.add_log(
             "LangGraph",
