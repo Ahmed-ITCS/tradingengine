@@ -18,7 +18,6 @@ from agents.news_agent import run_news_agent
 from agents.data_agent import run_data_agent
 from agents.decision_agent import run_decision_agent
 from agents.execution_agent import run_execution_agent, monitor_open_trades
-from config import settings
 
 class TradingGraphState(TypedDict):
     symbol: str
@@ -91,16 +90,13 @@ def node_make_decision(state: TradingGraphState) -> TradingGraphState:
             portfolio_dict=portfolio_dict,
         )
 
-        min_confidence = trading_state.effective_min_trade_confidence()
-        signal_ok      = decision.signal != TradeSignal.HOLD
-        confidence_ok  = decision.confidence >= min_confidence
-        should_exec    = signal_ok and confidence_ok
+        signal_ok   = decision.signal != TradeSignal.HOLD
+        should_exec = signal_ok
 
         trading_state.add_log(
             "LangGraph",
             f"[Node: DecisionAgent] signal={decision.signal.value} "
-            f"conf={decision.confidence:.0%} min={min_confidence:.0%} "
-            f"→ should_execute={should_exec}",
+            f"conf={decision.confidence:.0%} → should_execute={should_exec} (non-HOLD only)",
         )
 
         return {

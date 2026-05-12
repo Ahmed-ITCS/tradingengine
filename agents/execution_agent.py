@@ -12,14 +12,6 @@ from core.database import db
 from config import settings
 
 
-def _parse_iso_timestamp(value: str) -> Optional[datetime]:
-    try:
-        # Support timestamps with trailing Z and timezone offsets.
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except Exception:
-        return None
-
-
 class PaperBroker:
     """Simulated broker for paper trading."""
 
@@ -134,63 +126,12 @@ def check_sl_tp(trade: Trade, current_price: float) -> Optional[str]:
 
 def run_execution_agent(decision: TradeDecision) -> Optional[Trade]:
     """
-    Execute a trade decision.
-    Returns the Trade object if executed, None if HOLD or failed.
+    Execute a trade decision (no extra gates: graph already chose to act).
+    Returns the Trade object if executed, None if HOLD or broker failure.
     """
     if decision.signal == TradeSignal.HOLD:
         trading_state.add_log("ExecutionAgent", "Signal is HOLD — no action taken")
         return None
-
-    min_conf = float(trading_state.effective_min_trade_confidence())
-    if decision.confidence < min_conf:
-        trading_state.add_log(
-            "ExecutionAgent",
-            f"Confidence {decision.confidence:.0%} below effective threshold ({min_conf:.0%}) — skipping",
-            level="warn"
-        )
-        return None
-
-    # Anti-stacking gates: global max, symbol max, and per-symbol cooldown.
-    now = datetime.utcnow()
-    with trading_state._lock:
-        total_open = len(trading_state.open_trades)
-        if total_open >= int(settings.MAX_OPEN_TRADES_TOTAL):
-            trading_state.add_log(
-                "ExecutionAgent",
-                f"Open position cap reached ({total_open}/{settings.MAX_OPEN_TRADES_TOTAL}) — skipping",
-                level="warn"
-            )
-            return None
-
-        existing = [t for t in trading_state.open_trades if t.symbol == decision.symbol]
-        if len(existing) >= int(settings.MAX_OPEN_TRADES_PER_SYMBOL):
-            trading_state.add_log(
-                "ExecutionAgent",
-                f"Already have {len(existing)} open position(s) for {decision.symbol} "
-                f"(max {settings.MAX_OPEN_TRADES_PER_SYMBOL})",
-                level="warn"
-            )
-            return None
-
-        cooldown = max(0, int(settings.TRADE_COOLDOWN_SECONDS))
-        if cooldown > 0:
-            latest_closed = next(
-                (t for t in reversed(trading_state.closed_trades) if t.symbol == decision.symbol and t.exit_time),
-                None
-            )
-            if latest_closed and latest_closed.exit_time:
-                closed_at = _parse_iso_timestamp(latest_closed.exit_time)
-                if closed_at is not None:
-                    elapsed = (now - closed_at.replace(tzinfo=None)).total_seconds() if closed_at.tzinfo else (now - closed_at).total_seconds()
-                else:
-                    elapsed = cooldown + 1
-                if elapsed < cooldown:
-                    trading_state.add_log(
-                        "ExecutionAgent",
-                        f"Cooldown active for {decision.symbol} ({int(cooldown - elapsed)}s remaining) — skipping",
-                        level="warn"
-                    )
-                    return None
 
     broker = get_broker()
     side = "buy" if decision.signal == TradeSignal.BUY else "sell"
