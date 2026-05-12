@@ -1,6 +1,7 @@
 """
 EvoTrade AI - LangGraph Multi-Agent Workflow
-Fixed: confidence threshold lowered, mock LLM returns actionable signals.
+Routes to execution when signal is BUY/SELL and confidence >= effective floor
+(MIN_TRADE_CONFIDENCE, optionally nudged by ADAPTIVE_TRADE_CONFIDENCE).
 """
 from __future__ import annotations
 import json
@@ -90,13 +91,16 @@ def node_make_decision(state: TradingGraphState) -> TradingGraphState:
             portfolio_dict=portfolio_dict,
         )
 
-        signal_ok   = decision.signal != TradeSignal.HOLD
-        should_exec = signal_ok
+        min_confidence = trading_state.effective_min_trade_confidence()
+        signal_ok      = decision.signal != TradeSignal.HOLD
+        confidence_ok  = decision.confidence >= min_confidence
+        should_exec    = signal_ok and confidence_ok
 
         trading_state.add_log(
             "LangGraph",
             f"[Node: DecisionAgent] signal={decision.signal.value} "
-            f"conf={decision.confidence:.0%} → should_execute={should_exec} (non-HOLD only)",
+            f"conf={decision.confidence:.0%} min(effective)={min_confidence:.0%} "
+            f"→ should_execute={should_exec}",
         )
 
         return {

@@ -126,11 +126,21 @@ def check_sl_tp(trade: Trade, current_price: float) -> Optional[str]:
 
 def run_execution_agent(decision: TradeDecision) -> Optional[Trade]:
     """
-    Execute a trade decision (no extra gates: graph already chose to act).
-    Returns the Trade object if executed, None if HOLD or broker failure.
+    Execute a trade decision.
+    Uses the same effective confidence floor as the graph (MIN_TRADE_CONFIDENCE + adaptive nudge).
+    Returns the Trade object if executed, None if HOLD, below floor, or broker failure.
     """
     if decision.signal == TradeSignal.HOLD:
         trading_state.add_log("ExecutionAgent", "Signal is HOLD — no action taken")
+        return None
+
+    min_conf = float(trading_state.effective_min_trade_confidence())
+    if decision.confidence < min_conf:
+        trading_state.add_log(
+            "ExecutionAgent",
+            f"Confidence {decision.confidence:.0%} below effective floor ({min_conf:.0%}) — skipping",
+            level="warn",
+        )
         return None
 
     broker = get_broker()

@@ -1,6 +1,4 @@
 # Environment and secrets (commit .env.example, not .env)
-.env
-.env.local
 .env.*.local
 
 # Python
@@ -58,3 +56,5 @@ Thumbs.db
 data/*.duckdb
 data/*.duckdb.wal
 data/*.log
+config.bat
+node_modules
