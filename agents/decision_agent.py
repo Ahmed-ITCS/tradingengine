@@ -116,15 +116,14 @@ def parse_decision_response(
     price  = indicators.get("close", 1)
     equity = portfolio.get("equity", settings.INITIAL_CAPITAL)
 
-    signal_str = str(data.get("signal", "BUY")).upper().strip()
-    # Strip anything that isn't BUY/SELL/HOLD
+    signal_str = str(data.get("signal", "HOLD")).upper().strip()
     if signal_str not in ("BUY", "SELL", "HOLD"):
-        signal_str = "BUY"
+        signal_str = "HOLD"
 
     try:
         signal = TradeSignal(signal_str)
     except ValueError:
-        signal = TradeSignal.BUY
+        signal = TradeSignal.HOLD
 
     size_pct  = min(float(data.get("size_pct", 0.02)), settings.MAX_RISK_PER_TRADE * 2)
     size_usdt = equity * size_pct
