@@ -150,28 +150,9 @@ def run_execution_agent(decision: TradeDecision) -> Optional[Trade]:
         )
         return None
 
-    # Anti-stacking gates: global max, symbol max, and per-symbol cooldown.
+    # Anti-stacking: per-symbol cooldown only.
     now = datetime.utcnow()
     with trading_state._lock:
-        total_open = len(trading_state.open_trades)
-        if total_open >= int(settings.MAX_OPEN_TRADES_TOTAL):
-            trading_state.add_log(
-                "ExecutionAgent",
-                f"Open position cap reached ({total_open}/{settings.MAX_OPEN_TRADES_TOTAL}) — skipping",
-                level="warn"
-            )
-            return None
-
-        existing = [t for t in trading_state.open_trades if t.symbol == decision.symbol]
-        if len(existing) >= int(settings.MAX_OPEN_TRADES_PER_SYMBOL):
-            trading_state.add_log(
-                "ExecutionAgent",
-                f"Already have {len(existing)} open position(s) for {decision.symbol} "
-                f"(max {settings.MAX_OPEN_TRADES_PER_SYMBOL})",
-                level="warn"
-            )
-            return None
-
         cooldown = max(0, int(settings.TRADE_COOLDOWN_SECONDS))
         if cooldown > 0:
             latest_closed = next(

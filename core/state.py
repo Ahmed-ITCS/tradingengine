@@ -116,7 +116,7 @@ class TradingState:
         self._lock = threading.RLock()
         self.status: EngineStatus = EngineStatus.STOPPED
         self.symbol: str = "BTC/USDT"
-        self.timeframe: str = "1h"
+        self.timeframe: str = "4h"
         self.paper_trading: bool = True
 
         self.portfolio: PortfolioState = PortfolioState()

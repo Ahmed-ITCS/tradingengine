@@ -17,18 +17,21 @@ from config import settings
 
 # Tagged with DECISION_AGENT so mock LLM routing works correctly
 DECISION_SYSTEM_PROMPT = """DECISION_AGENT
-You are EvoTrade AI's Chief Decision Agent — a seasoned algorithmic trader with deep expertise in technical analysis, risk management, and market microstructure.
+You are EvoTrade AI's Chief Decision Agent — a swing trader focused on 4-hour crypto charts and multi-day holds.
 
-Your role is to synthesize inputs from multiple specialized agents and make precise, risk-adjusted trading decisions.
+Your role is to synthesize technical analysis, news sentiment, and portfolio risk into patient, high-quality swing trades.
 
 Always reason step-by-step:
-1. Assess technical picture (trend, momentum, volatility)
+1. Assess the 4h trend, momentum, volatility, and key support/resistance / chart structure
 2. Factor in news sentiment and macro backdrop
-3. Evaluate current portfolio risk
-4. Size position appropriately
-5. Set precise stop-loss and take-profit levels
+3. Evaluate current portfolio risk and open exposure
+4. Size the position appropriately for a swing hold (fewer trades, wider stops)
+5. Set wider stop-loss and take-profit levels suited to 4h swings (typically 2–4% SL, 2–3× RR TP)
 
-IMPORTANT: DO NOT return news sentiment JSON. ONLY return a trading decision JSON in this exact format, and nothing else.
+Rules:
+- Prefer HOLD when the setup is unclear or chop dominates
+- Swing trades hold for days — do not chase noise
+- Consider classical chart patterns (triangles, flags, double tops/bottoms, H&S) visible on 4h
 
 Respond with ONLY this JSON:
 {
@@ -36,8 +39,8 @@ Respond with ONLY this JSON:
     "signal": "<BUY|SELL|HOLD>",
     "confidence": <0.0 to 1.0>,
     "size_pct": <fraction of equity to risk, max 0.05>,
-    "stop_loss_pct": <e.g. 0.02 for 2% SL>,
-    "take_profit_pct": <e.g. 0.04 for 4% TP>,
+    "stop_loss_pct": <e.g. 0.025 for 2.5% SL>,
+    "take_profit_pct": <e.g. 0.075 for 7.5% TP>,
     "ta_summary": "<1 sentence TA assessment>",
     "sentiment_summary": "<1 sentence sentiment assessment>",
     "risk_assessment": "<1 sentence risk assessment>"
@@ -50,10 +53,12 @@ def build_decision_prompt(
     indicators: Dict,
     sentiment: Dict,
     portfolio: Dict,
+    timeframe: str = "4h",
 ) -> str:
-    return f"""Make a trading decision for {symbol}.
+    return f"""Make a swing trading decision for {symbol} on the {timeframe} timeframe.
+Hold trades for multiple days. Use wider stops than intraday scalping.
 
-=== TECHNICAL ANALYSIS ===
+=== TECHNICAL ANALYSIS ({timeframe}) ===
 Current Price: ${indicators.get('close', 0):,.4f}
 Trend: {indicators.get('trend', 'NEUTRAL')}
 EMA 20: {indicators.get('ema_20', 0):.4f}
@@ -107,8 +112,8 @@ def parse_decision_response(
             "confidence":   0.0,
             "reasoning":    "Parse fallback — invalid model response, choosing HOLD for safety.",
             "size_pct":     0.0,
-            "stop_loss_pct":  0.02,
-            "take_profit_pct": 0.04,
+            "stop_loss_pct":  settings.DEFAULT_STOP_LOSS_PCT,
+            "take_profit_pct": settings.DEFAULT_TAKE_PROFIT_PCT,
             "ta_summary":    "Parse error fallback",
             "sentiment_summary": "N/A",
             "risk_assessment":   "No trade on parser failure"
@@ -137,8 +142,8 @@ def parse_decision_response(
 
     size_pct  = min(float(data.get("size_pct", 0.02)), settings.MAX_RISK_PER_TRADE * 2)
     size_usdt = equity * size_pct
-    sl_pct    = float(data.get("stop_loss_pct",   0.02))
-    tp_pct    = float(data.get("take_profit_pct", 0.04))
+    sl_pct    = float(data.get("stop_loss_pct",   settings.DEFAULT_STOP_LOSS_PCT))
+    tp_pct    = float(data.get("take_profit_pct", settings.DEFAULT_TAKE_PROFIT_PCT))
 
     if signal == TradeSignal.BUY:
         sl = price * (1 - sl_pct)
@@ -173,10 +178,11 @@ def run_decision_agent(
     indicators: Dict,
     sentiment: Dict,
     portfolio_dict: Dict,
+    timeframe: str = "4h",
 ) -> TradeDecision:
-    trading_state.add_log("DecisionAgent", f"Synthesizing signals for {symbol}...")
+    trading_state.add_log("DecisionAgent", f"Synthesizing swing signals for {symbol} [{timeframe}]...")
 
-    prompt = build_decision_prompt(symbol, indicators, sentiment, portfolio_dict)
+    prompt = build_decision_prompt(symbol, indicators, sentiment, portfolio_dict, timeframe)
     raw    = get_llm_response(prompt, system=DECISION_SYSTEM_PROMPT, max_tokens=800)
 
     # Log first 120 chars of raw response for debugging

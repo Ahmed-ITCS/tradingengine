@@ -29,18 +29,19 @@ class Settings(BaseSettings):
     USE_TESTNET: bool = True
     PAPER_TRADING: bool = True
 
-    # Trading Defaults
+    # Trading Defaults (swing — 4h holds)
     DEFAULT_SYMBOL: str = "BTC/USDT"
-    DEFAULT_TIMEFRAME: str = "1h"
+    DEFAULT_TIMEFRAME: str = "4h"
     MAX_RISK_PER_TRADE: float = 0.02      # 2% per trade
     MAX_DRAWDOWN_KILL: float = 0.10       # 10% global drawdown kill
     INITIAL_CAPITAL: float = 100.0
+    # Default swing stop/target when LLM omits them
+    DEFAULT_STOP_LOSS_PCT: float = 0.025    # 2.5%
+    DEFAULT_TAKE_PROFIT_PCT: float = 0.075  # 7.5% (~3:1 RR)
 
     # Execution gate (graph + execution agent). Override via .env without code edits.
     MIN_TRADE_CONFIDENCE: float = 0.60
-    MAX_OPEN_TRADES_TOTAL: int = 3
-    MAX_OPEN_TRADES_PER_SYMBOL: int = 1
-    TRADE_COOLDOWN_SECONDS: int = 300
+    TRADE_COOLDOWN_SECONDS: int = 14400   # 4h between entries on same symbol
     # Non-paper: human_review auto-approves at or above this confidence.
     LIVE_AUTO_APPROVE_CONFIDENCE: float = 0.80
 
@@ -51,88 +52,12 @@ class Settings(BaseSettings):
     ADAPTIVE_CONFIDENCE_MIN_FLOOR: float = 0.45
     ADAPTIVE_CONFIDENCE_MAX_CEIL: float = 0.75
 
-    # Engine
-    ENGINE_INTERVAL_SECONDS: int = 30
+    # Engine — check for new swing setups every hour on 4h candles
+    ENGINE_INTERVAL_SECONDS: int = 3600
     EVOLUTION_INTERVAL_HOURS: int = 6
     # If true, start the trading scheduler as soon as FastAPI boots (for headless servers).
     # Use a single uvicorn worker (--workers 1); multiple workers would run duplicate engines.
     AUTO_START_ENGINE: bool = True
-
-    # ── Scalping Mode ──────────────────────────────────────────────────────────
-    # Enable/disable intraday scalping engine (operates alongside the main LangGraph cycle).
-    SCALPING_MODE: bool = False
-    # Short timeframe for scalp data fetches: "1m" | "3m" | "5m"
-    SCALPING_TIMEFRAME: str = "5m"
-    # Comma-separated symbols to scalp (cycles through them in order)
-    SCALPING_SYMBOLS: str = "BTC/USDT"
-    # Account size used for all risk calculations (USDT)
-    SCALPING_ACCOUNT_SIZE: float = 1000.0
-    # Hard daily loss limit as fraction of account (0.03 = 3%)
-    SCALPING_MAX_DAILY_LOSS_PCT: float = 0.03
-    # Target risk per trade as fraction of account (0.005 = 0.5%)
-    SCALPING_RISK_PER_TRADE_PCT: float = 0.005
-    # Maximum fraction of account in any single scalp position (0.25 = 25%)
-    SCALPING_MAX_POSITION_PCT: float = 0.25
-    # Maximum trades allowed per UTC day (anti-overtrading guard)
-    SCALPING_MAX_TRADES_PER_DAY: int = 20
-    # How often the scalping cycle runs (seconds); keep >= 15 to avoid rate limits
-    SCALPING_INTERVAL_SECONDS: int = 30
-    # Minimum SL distance as % of price — floor used when ATR is abnormally small (0.002 = 0.2%)
-    SCALPING_SL_PCT: float = 0.002
-    # Take-profit = actual SL distance * this multiplier (1.5 = 1:1.5 RR)
-    SCALPING_TP_MULTIPLIER: float = 1.5
-    # ATR multiplier for dynamic SL sizing: SL_distance = max(ATR * mult, price * SL_PCT)
-    # Per-setup tuning: breakout=0.8x, pullback=1.0x, vwap_reversion=1.2x, rsi_extreme=1.5x
-    SCALPING_ATR_SL_MULT: float = 0.8
-    # If true, scalping final decision is LLM-driven (Gemini/OpenAI/etc), with rule fallback.
-    SCALPING_USE_LLM: bool = True
-    # If true, LLM has final authority for BUY/SELL even when no rule setup qualifies.
-    # Risk gates still apply (daily kill, confidence floor, position sizing, SL/TP sanity).
-    SCALPING_LLM_FINAL_AUTHORITY: bool = True
-    # Anti-churn: require same directional LLM signal for N consecutive cycles before entry.
-    SCALPING_SIGNAL_CONFIRMATION_CYCLES: int = 2
-    # Anti-churn: block immediate opposite-direction entries for this many seconds.
-    SCALPING_REVERSAL_COOLDOWN_SECONDS: int = 120
-
-    # ── Auto timeframe selection ───────────────────────────────────────────────
-    # When True, the engine evaluates all SCALPING_TF_OPTIONS each cycle and
-    # picks the timeframe that produces the highest-scoring setup.
-    SCALPING_TF_AUTO: bool = True
-    # Comma-separated timeframes to evaluate in each cycle (fastest → slowest)
-    SCALPING_TF_OPTIONS: str = "1m,3m,5m"
-    # Noise filter: if ATR/price ratio on a given TF exceeds this, that TF is skipped
-    # (0.015 = 1.5% ATR/price — typical threshold above which 1m becomes too choppy)
-    SCALPING_TF_NOISE_FILTER: float = 0.015
-    # Minimum setup confidence (0–1) required before a scalp trade fires
-    SCALPING_MIN_CONFIDENCE: float = 0.55
-    # If True, force-close all scalp positions at SCALPING_EOD_HOUR_UTC each day
-    SCALPING_EOD_CLOSE_ALL: bool = True
-    # UTC hour at which end-of-day close-all triggers (0–23); 23 = 11 PM UTC
-    SCALPING_EOD_HOUR_UTC: int = 23
-
-    # ── Swing Trading Mode (4h chart patterns) ────────────────────────────────
-    # Multi-day swing engine — scans all chart patterns on 4h candles.
-    SWING_MODE: bool = False
-    SWING_TIMEFRAME: str = "4h"
-    SWING_SYMBOLS: str = "BTC/USDT"
-    SWING_ACCOUNT_SIZE: float = 1000.0
-    # Weekly loss limit (swing holds overnight — no daily EOD close)
-    SWING_MAX_WEEKLY_LOSS_PCT: float = 0.05
-    SWING_RISK_PER_TRADE_PCT: float = 0.01
-    SWING_MAX_POSITION_PCT: float = 0.30
-    SWING_MAX_TRADES_PER_WEEK: int = 5
-    # Check for 4h pattern setups every N seconds (default 1 hour)
-    SWING_INTERVAL_SECONDS: int = 3600
-    # Minimum SL floor (1.5% — wider than scalping)
-    SWING_SL_PCT: float = 0.015
-    SWING_TP_MULTIPLIER: float = 3.0
-    SWING_ATR_SL_MULT: float = 2.0
-    SWING_USE_LLM: bool = True
-    SWING_LLM_FINAL_AUTHORITY: bool = True
-    SWING_SIGNAL_CONFIRMATION_CYCLES: int = 1
-    SWING_MIN_CONFIDENCE: float = 0.58
-    # Bars to fetch for pattern context on 4h (~50 days)
-    SWING_OHLCV_LIMIT: int = 300
 
     # Database
     DB_PATH: str = "data/evotrade.duckdb"
