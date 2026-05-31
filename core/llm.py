@@ -56,18 +56,36 @@ def _call_openai(prompt: str, system: str, max_tokens: int) -> str:
 
 def _call_gemini(prompt: str, system: str, max_tokens: int) -> str:
     try:
-        import google.generativeai as genai
+        from google import genai
+        from google.genai import types
     except ImportError:
-        raise RuntimeError("Run: pip install google-generativeai")
-    genai.configure(api_key=settings.GEMINI_API_KEY)
-    model = genai.GenerativeModel(
-        model_name=getattr(settings, "GEMINI_MODEL", "gemini-2.0-flash"),
-        system_instruction=system or "You are EvoTrade AI.",
-        generation_config=genai.GenerationConfig(
-            max_output_tokens=max_tokens, temperature=0.3
-        )
+        raise RuntimeError("Run: pip install google-genai")
+
+    client = genai.Client(api_key=settings.GEMINI_API_KEY)
+    model = getattr(settings, "GEMINI_MODEL", "gemini-2.0-flash")
+
+    response = client.models.generate_content(
+        model=model,
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            system_instruction=system or "You are EvoTrade AI.",
+            max_output_tokens=max_tokens,
+            temperature=0.3,
+        ),
     )
-    return model.generate_content(prompt).text
+
+    text = getattr(response, "text", None)
+    if text:
+        return text
+
+    candidates = getattr(response, "candidates", None) or []
+    if candidates:
+        parts = getattr(getattr(candidates[0], "content", None), "parts", None) or []
+        joined = "".join(getattr(p, "text", "") or "" for p in parts)
+        if joined.strip():
+            return joined
+
+    raise RuntimeError("Gemini returned empty response")
 
 
 def _call_ollama(prompt: str, system: str, max_tokens: int) -> str:
