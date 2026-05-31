@@ -12,79 +12,41 @@ import pandas as pd
 import numpy as np
 
 from core.state import trading_state
-from config import settings
 
 
 def get_exchange():
-    """Initialize ccxt exchange (Binance testnet by default)."""
+    """Public Binance spot client for market data (no API key required)."""
     try:
         import ccxt
-        exchange = ccxt.binance({
-            'apiKey': settings.BINANCE_API_KEY,
-            'secret': settings.BINANCE_SECRET,
-            'sandbox': settings.USE_TESTNET,
-            'options': {'defaultType': 'spot'},
+        return ccxt.binance({
             'enableRateLimit': True,
+            'options': {'defaultType': 'spot'},
         })
-        return exchange
     except Exception as e:
-        trading_state.add_log("DataAgent", f"Exchange init error: {e}", level="warn")
+        trading_state.add_log("DataAgent", f"Exchange init error: {e}", level="error")
         return None
 
 
 def fetch_ohlcv(symbol: str, timeframe: str = "1h", limit: int = 200) -> Optional[pd.DataFrame]:
-    """Fetch OHLCV data. Falls back to synthetic data if exchange unavailable."""
+    """Fetch live OHLCV from Binance public API. Returns None if unavailable."""
     exchange = get_exchange()
+    if exchange is None:
+        trading_state.add_log("DataAgent", "Cannot fetch OHLCV — exchange unavailable", level="error")
+        return None
 
-    if exchange and (settings.BINANCE_API_KEY or True):  # Try even without key (public data)
-        try:
-            ohlcv = exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
-            df = pd.DataFrame(ohlcv, columns=["timestamp", "open", "high", "low", "close", "volume"])
-            df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
-            df.set_index("timestamp", inplace=True)
-            trading_state.add_log("DataAgent", f"Fetched {len(df)} candles for {symbol} [{timeframe}]")
-            return df
-        except Exception as e:
-            trading_state.add_log("DataAgent", f"OHLCV fetch error: {e}, using synthetic data", level="warn")
-
-    # Generate synthetic OHLCV data for demo
-    return _generate_synthetic_ohlcv(symbol, timeframe, limit)
-
-
-def _generate_synthetic_ohlcv(symbol: str, timeframe: str, limit: int) -> pd.DataFrame:
-    """Generate realistic synthetic price data for demo purposes."""
-    tf_minutes = {"1m": 1, "5m": 5, "15m": 15, "1h": 60, "4h": 240, "1d": 1440, "1w": 10080}
-    mins = tf_minutes.get(timeframe, 60)
-
-    # Base prices for common pairs
-    base_prices = {
-        "BTC/USDT": 67000, "ETH/USDT": 3500, "BNB/USDT": 580,
-        "SOL/USDT": 160, "ADA/USDT": 0.45, "XRP/USDT": 0.52,
-        "DOGE/USDT": 0.15, "AVAX/USDT": 35, "DOT/USDT": 7.5,
-    }
-    base = base_prices.get(symbol, 100)
-
-    np.random.seed(42)
-    timestamps = pd.date_range(
-        end=datetime.utcnow(),
-        periods=limit,
-        freq=f"{mins}min"
-    )
-
-    # Simulate realistic price walk
-    returns = np.random.normal(0.0002, 0.015, limit)
-    prices = [base]
-    for r in returns[1:]:
-        prices.append(prices[-1] * (1 + r))
-
-    df = pd.DataFrame(index=timestamps)
-    df["close"] = prices
-    df["open"] = df["close"].shift(1).fillna(df["close"].iloc[0])
-    df["high"] = df[["open", "close"]].max(axis=1) * (1 + np.abs(np.random.normal(0, 0.005, limit)))
-    df["low"] = df[["open", "close"]].min(axis=1) * (1 - np.abs(np.random.normal(0, 0.005, limit)))
-    df["volume"] = np.random.lognormal(10, 1, limit) * base / 100
-
-    return df
+    try:
+        ohlcv = exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
+        if not ohlcv:
+            trading_state.add_log("DataAgent", f"No candles returned for {symbol} [{timeframe}]", level="error")
+            return None
+        df = pd.DataFrame(ohlcv, columns=["timestamp", "open", "high", "low", "close", "volume"])
+        df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
+        df.set_index("timestamp", inplace=True)
+        trading_state.add_log("DataAgent", f"Fetched {len(df)} candles for {symbol} [{timeframe}] (Binance live)")
+        return df
+    except Exception as e:
+        trading_state.add_log("DataAgent", f"OHLCV fetch failed for {symbol} [{timeframe}]: {e}", level="error")
+        return None
 
 
 def _register_pandas_ta_accessor() -> None:

@@ -7,8 +7,6 @@ from __future__ import annotations
 import json
 import re
 import uuid
-import time
-import numpy as np
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
@@ -90,15 +88,16 @@ Respond ONLY with valid JSON:
 
 
 def backtest_strategy_idea(idea: Dict, symbol: str, timeframe: str) -> Dict[str, float]:
-    """Fetch data and run vectorized backtest."""
+    """Fetch data and run vectorized backtest. Requires live OHLCV."""
+    empty = _empty_metrics()
     try:
         df = fetch_ohlcv(symbol, timeframe, limit=500)
         if df is None or len(df) < 100:
-            return _mock_metrics()
+            trading_state.add_log("EvolutionAgent", "Backtest skipped — insufficient live OHLCV data", level="warn")
+            return empty
 
-        # Ensure indicators computed
         if "close" not in df.columns:
-            return _mock_metrics()
+            return empty
 
         bt = VectorizedBacktester(initial_capital=settings.INITIAL_CAPITAL)
         config = {
@@ -121,20 +120,19 @@ def backtest_strategy_idea(idea: Dict, symbol: str, timeframe: str) -> Dict[str,
         }
     except Exception as e:
         trading_state.add_log("EvolutionAgent", f"Backtest error: {e}", level="warn")
-        return _mock_metrics()
+        return empty
 
 
-def _mock_metrics() -> Dict[str, float]:
-    rng = np.random.default_rng(int(time.time()) % 9999)
-    ret = float(rng.normal(12, 20))
+def _empty_metrics() -> Dict[str, float]:
+    """Returned when backtest cannot run on real data."""
     return {
-        "total_return": ret,
-        "win_rate": float(rng.uniform(42, 68)),
-        "sharpe": float(rng.normal(1.1, 0.7)),
-        "max_drawdown": float(-rng.uniform(5, 22)),
-        "trade_count": int(rng.integers(20, 100)),
-        "profit_factor": float(rng.uniform(1.0, 2.5)),
-        "composite_score": float(ret * 0.4 + rng.normal(20, 10)),
+        "total_return": 0.0,
+        "win_rate": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown": 0.0,
+        "trade_count": 0,
+        "profit_factor": 0.0,
+        "composite_score": 0.0,
     }
 
 

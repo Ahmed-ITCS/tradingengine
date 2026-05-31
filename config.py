@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     DEBUG: bool = True
 
-    # LLM Provider: "openai" | "anthropic" | "gemini" | "ollama" | "mock"
+    # LLM Provider: "openai" | "anthropic" | "gemini" | "ollama"
     LLM_PROVIDER: str = "gemini"
     OPENAI_API_KEY: Optional[str] = None
     ANTHROPIC_API_KEY: Optional[str] = None
@@ -35,9 +35,16 @@ class Settings(BaseSettings):
     MAX_RISK_PER_TRADE: float = 0.02      # 2% per trade
     MAX_DRAWDOWN_KILL: float = 0.10       # 10% global drawdown kill
     INITIAL_CAPITAL: float = 100.0
-    # Default swing stop/target when LLM omits them
+    # Default swing stop/target for deterministic decision agent
     DEFAULT_STOP_LOSS_PCT: float = 0.025    # 2.5%
     DEFAULT_TAKE_PROFIT_PCT: float = 0.075  # 7.5% (~3:1 RR)
+
+    # Deterministic decision agent weights (must sum to ~1.0)
+    DECISION_WEIGHT_TA: float = 0.40
+    DECISION_WEIGHT_PATTERNS: float = 0.35
+    DECISION_WEIGHT_SENTIMENT: float = 0.25
+    DECISION_MIN_NET_EDGE: float = 0.10       # min |bull-bear| to trade
+    DECISION_MIN_MODULE_AGREEMENT: int = 2    # of 3 modules must lean same way
 
     # Execution gate (graph + execution agent). Override via .env without code edits.
     MIN_TRADE_CONFIDENCE: float = 0.60

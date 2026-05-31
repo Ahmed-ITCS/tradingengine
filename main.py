@@ -163,6 +163,7 @@ def get_indicators():
     return {
         "indicators": trading_state.last_indicators or {},
         "sentiment": trading_state.last_news_sentiment or {},
+        "chart_patterns": trading_state.last_chart_patterns or {},
         "price": trading_state.current_price,
         "timestamp": datetime.utcnow().isoformat(),
         "symbol": trading_state.symbol,

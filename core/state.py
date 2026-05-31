@@ -130,6 +130,7 @@ class TradingState:
         self.last_ohlcv: Optional[List] = None
         self.last_indicators: Optional[Dict] = None
         self.last_news_sentiment: Optional[Dict] = None
+        self.last_chart_patterns: Optional[Dict] = None
         self.last_decision: Optional[TradeDecision] = None
 
         self.equity_curve: List[Dict] = []

@@ -1,6 +1,6 @@
 """
 EvoTrade AI - LangGraph Multi-Agent Workflow
-Standard swing path: data → news → LLM decision → execute → monitor.
+Standard swing path: data → chart patterns → news → LLM decision → execute → monitor.
 """
 from __future__ import annotations
 from typing import TypedDict, Optional, Dict, Any, List
@@ -15,6 +15,7 @@ except ImportError:
 from core.state import trading_state, TradeDecision, TradeSignal
 from agents.news_agent import run_news_agent
 from agents.data_agent import run_data_agent
+from agents.chart_patterns_agent import run_chart_patterns_agent
 from agents.decision_agent import run_decision_agent
 from agents.execution_agent import run_execution_agent, monitor_open_trades
 from config import settings
@@ -26,6 +27,7 @@ class TradingGraphState(TypedDict):
     cycle_id: str
     market_data: Optional[Dict[str, Any]]
     indicators: Optional[Dict[str, Any]]
+    chart_patterns: Optional[Dict[str, Any]]
     news_sentiment: Optional[Dict[str, Any]]
     decision: Optional[Dict[str, Any]]
     trade_result: Optional[Dict[str, Any]]
@@ -55,6 +57,31 @@ def node_fetch_market_data(state: TradingGraphState) -> TradingGraphState:
         }
 
 
+def node_detect_chart_patterns(state: TradingGraphState) -> TradingGraphState:
+    try:
+        if state.get("error"):
+            return state
+
+        trading_state.add_log(
+            "LangGraph",
+            f"[Node: ChartPatternsAgent] Scanning {state['symbol']} [{state['timeframe']}]",
+        )
+        patterns = run_chart_patterns_agent(state["symbol"], state["timeframe"])
+        return {
+            **state,
+            "chart_patterns": patterns,
+            "completed_nodes": state.get("completed_nodes", []) + ["chart_patterns_agent"],
+        }
+    except Exception as e:
+        trading_state.add_log("LangGraph", f"[Node: ChartPatternsAgent] Error: {e}", level="error")
+        return {
+            **state,
+            "chart_patterns": None,
+            "error": f"ChartPatternsAgent failed: {e}",
+            "completed_nodes": state.get("completed_nodes", []) + ["chart_patterns_agent"],
+        }
+
+
 def node_fetch_news_sentiment(state: TradingGraphState) -> TradingGraphState:
     try:
         trading_state.add_log("LangGraph", f"[Node: NewsAgent] Analyzing sentiment for {state['symbol']}")
@@ -65,22 +92,34 @@ def node_fetch_news_sentiment(state: TradingGraphState) -> TradingGraphState:
             "completed_nodes": state.get("completed_nodes", []) + ["news_agent"],
         }
     except Exception as e:
+        trading_state.add_log("LangGraph", f"[Node: NewsAgent] Error: {e}", level="error")
         return {
             **state,
-            "news_sentiment": {"sentiment_score": 0.5, "sentiment_label": "NEUTRAL"},
+            "news_sentiment": None,
+            "error": f"NewsAgent failed: {e}",
             "completed_nodes": state.get("completed_nodes", []) + ["news_agent"],
         }
 
 
 def node_make_decision(state: TradingGraphState) -> TradingGraphState:
     try:
+        if state.get("error"):
+            return {**state, "should_execute": False}
+
         indicators = state.get("indicators", {})
-        sentiment = state.get("news_sentiment", {})
+        sentiment = state.get("news_sentiment")
+        chart_patterns = state.get("chart_patterns")
 
         if not indicators:
             return {**state, "error": "No indicator data", "should_execute": False}
 
-        trading_state.add_log("LangGraph", "[Node: DecisionAgent] Synthesizing swing signals...")
+        if not chart_patterns:
+            return {**state, "error": "Chart pattern analysis unavailable", "should_execute": False}
+
+        if not sentiment:
+            return {**state, "error": "News sentiment unavailable", "should_execute": False}
+
+        trading_state.add_log("LangGraph", "[Node: DecisionAgent] Scoring swing setup (deterministic)...")
 
         portfolio_dict = trading_state.to_dashboard_dict()
         portfolio_dict["open_trades_count"] = len(trading_state.open_trades)
@@ -89,6 +128,7 @@ def node_make_decision(state: TradingGraphState) -> TradingGraphState:
             symbol=state["symbol"],
             indicators=indicators,
             sentiment=sentiment,
+            chart_patterns=chart_patterns,
             portfolio_dict=portfolio_dict,
             timeframe=state["timeframe"],
         )
@@ -197,13 +237,15 @@ def build_trading_graph():
         return None
     g = StateGraph(TradingGraphState)
     g.add_node("data_agent", node_fetch_market_data)
+    g.add_node("chart_patterns_agent", node_detect_chart_patterns)
     g.add_node("news_agent", node_fetch_news_sentiment)
     g.add_node("decision_agent", node_make_decision)
     g.add_node("execute", node_execute_trade)
     g.add_node("monitor", node_monitor_positions)
     g.add_node("finalize", node_finalize)
     g.set_entry_point("data_agent")
-    g.add_edge("data_agent", "news_agent")
+    g.add_edge("data_agent", "chart_patterns_agent")
+    g.add_edge("chart_patterns_agent", "news_agent")
     g.add_edge("news_agent", "decision_agent")
     g.add_conditional_edges(
         "decision_agent",
@@ -237,6 +279,7 @@ def run_langgraph_cycle(symbol: str, timeframe: str, cycle_id: str) -> Dict[str,
         "cycle_id": cycle_id,
         "market_data": None,
         "indicators": None,
+        "chart_patterns": None,
         "news_sentiment": None,
         "decision": None,
         "trade_result": None,
@@ -260,11 +303,19 @@ def _fallback_cycle(symbol: str, timeframe: str, cycle_id: str) -> Dict[str, Any
     data = run_data_agent(symbol, timeframe)
     if not data:
         return {"error": "Data fetch failed", "completed_nodes": ["data_agent"]}
-    sentiment = run_news_agent(symbol)
+    try:
+        chart_patterns = run_chart_patterns_agent(symbol, timeframe)
+    except Exception as e:
+        return {"error": f"ChartPatternsAgent failed: {e}", "completed_nodes": ["data_agent", "chart_patterns_agent"]}
+    try:
+        sentiment = run_news_agent(symbol)
+    except Exception as e:
+        return {"error": f"NewsAgent failed: {e}", "completed_nodes": ["data_agent", "chart_patterns_agent", "news_agent"]}
     portfolio = trading_state.to_dashboard_dict()
     portfolio["open_trades_count"] = len(trading_state.open_trades)
     decision = run_decision_agent(
-        symbol, data.get("indicators", {}), sentiment, portfolio, timeframe=timeframe,
+        symbol, data.get("indicators", {}), sentiment, portfolio,
+        chart_patterns=chart_patterns, timeframe=timeframe,
     )
     trade = run_execution_agent(decision)
     monitor_open_trades()
@@ -274,7 +325,7 @@ def _fallback_cycle(symbol: str, timeframe: str, cycle_id: str) -> Dict[str, Any
     })
     return {
         "symbol": symbol,
-        "completed_nodes": ["data_agent", "news_agent", "decision_agent", "execute", "monitor", "finalize"],
+        "completed_nodes": ["data_agent", "chart_patterns_agent", "news_agent", "decision_agent", "execute", "monitor", "finalize"],
         "trade_result": {"trade_id": trade.id if trade else None},
     }
 

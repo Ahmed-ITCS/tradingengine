@@ -1159,15 +1159,14 @@ input[type="range"]::-webkit-slider-thumb {
     <div class="sidebar-section">
       <div class="sidebar-label">LLM Provider</div>
       <select class="sidebar-input" id="llm-select" onchange="onLLMChange()">
-        <option value="mock">🎭 Demo (No Key)</option>
+        <option value="gemini">🔵 Google Gemini</option>
         <option value="anthropic">🟣 Anthropic Claude</option>
         <option value="openai">🟢 OpenAI GPT-4o</option>
-        <option value="gemini">🔵 Google Gemini</option>
         <option value="ollama">🦙 Ollama (Local)</option>
       </select>
       <input class="api-key-input" type="password" id="api-key-input" placeholder="API Key (paste here)">
       <div id="llm-hint" style="font-size:9px;color:var(--muted);padding:2px 4px;line-height:1.4">
-        Demo mode — no key needed
+        Get free key → aistudio.google.com/app/apikey
       </div>
     </div>
 
@@ -1253,6 +1252,10 @@ input[type="range"]::-webkit-slider-thumb {
                 <div style="font-family:var(--font-mono);font-size:18px;font-weight:700" id="sig-sentiment">—</div>
               </div>
               <div>
+                <div class="metric-label">Patterns</div>
+                <div style="font-family:var(--font-mono);font-size:18px;font-weight:700" id="sig-patterns">—</div>
+              </div>
+              <div>
                 <div class="metric-label">ADX</div>
                 <div style="font-family:var(--font-mono);font-size:18px;font-weight:700" id="sig-adx">—</div>
               </div>
@@ -1314,6 +1317,16 @@ input[type="range"]::-webkit-slider-thumb {
           </div>
           <div style="margin-top:8px;font-size:11px;color:var(--muted);line-height:1.5" id="sentiment-summary">—</div>
         </div>
+
+        <!-- Chart Patterns -->
+        <div class="sentiment-meter" style="margin-top:12px">
+          <div class="panel-header">
+            <span class="panel-title">Chart Patterns</span>
+            <span id="pattern-structure" style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">—</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.5" id="pattern-summary">—</div>
+          <div id="pattern-list" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
+        </div>
       </div>
 
       <!-- AGENT MINDS TAB -->
@@ -1324,7 +1337,7 @@ input[type="range"]::-webkit-slider-thumb {
             <div style="display:flex;gap:8px;align-items:center">
               <select class="sidebar-input" id="agent-filter" style="width:140px;padding:4px 8px" onchange="filterLogs()">
                 <option value="">All Agents</option>
-                <option>DataAgent</option><option>NewsAgent</option>
+                <option>DataAgent</option><option>ChartPatternsAgent</option><option>NewsAgent</option>
                 <option>DecisionAgent</option><option>ExecutionAgent</option>
                 <option>EvolutionAgent</option><option>Engine</option>
                 <option>LangGraph</option>
@@ -1548,7 +1561,7 @@ const agentColors = {
   ScalpingAgent: '#00e5a0', ScalpingEngine: '#10b981',
 };
 const agentIcons = {
-  DataAgent: '📊', NewsAgent: '📰', DecisionAgent: '🧠',
+  DataAgent: '📊', NewsAgent: '📰', DecisionAgent: '⚖️',
   ExecutionAgent: '⚡', EvolutionAgent: '🧬', Engine: '🚀', LangGraph: '🕸️',
   ScalpingAgent: '⚡', ScalpingEngine: '📈',
 };
@@ -1756,7 +1769,7 @@ async function fetchChart() {
 async function fetchIndicators() {
   try {
     const d = await api('/api/indicators');
-    updateIndicators(d.indicators, d.sentiment);
+    updateIndicators(d.indicators, d.sentiment, d.chart_patterns);
   } catch(e) {}
 }
 
@@ -1868,7 +1881,7 @@ function updateDashboardFromPayload(d) {
   }
 }
 
-function updateIndicators(ind, sentiment) {
+function updateIndicators(ind, sentiment, chartPatterns) {
   if (!ind) return;
 
   setText('m-trend', `Trend: ${ind.trend || '—'}`);
@@ -1897,15 +1910,43 @@ function updateIndicators(ind, sentiment) {
   setText('sig-rsi', rsi ? rsi.toFixed(1) : '—');
   setText('sig-adx', ind.adx ? ind.adx.toFixed(1) : '—');
 
-  // Sentiment
-  if (sentiment) {
-    const score = sentiment.sentiment_score || 0.5;
-    const label = sentiment.sentiment_label || 'NEUTRAL';
+  // Sentiment — only show when live data exists (no fake neutral fallback)
+  if (sentiment && sentiment.sentiment_score != null && sentiment.sentiment_label) {
+    const score = sentiment.sentiment_score;
+    const label = sentiment.sentiment_label;
     setText('sentiment-label', label);
     setText('sentiment-summary', sentiment.news_summary || '—');
     setText('sig-sentiment', label);
     const needle = document.getElementById('sentiment-needle');
     if (needle) needle.style.left = `${score * 100}%`;
+  } else {
+    setText('sentiment-label', 'UNAVAILABLE');
+    setText('sentiment-summary', 'No live news sentiment — fetch RSS + LLM required');
+    setText('sig-sentiment', '—');
+    const needle = document.getElementById('sentiment-needle');
+    if (needle) needle.style.left = '50%';
+  }
+
+  // Chart patterns from ChartPatternsAgent
+  const cp = chartPatterns || {};
+  const patterns = cp.patterns || [];
+  setText('pattern-structure', cp.structure || '—');
+  setText('pattern-summary', cp.summary || 'Start engine to scan OHLCV for classical patterns.');
+  setText('sig-patterns', patterns.length ? `${patterns.length} found` : 'None');
+
+  const listEl = document.getElementById('pattern-list');
+  if (listEl) {
+    if (!patterns.length) {
+      listEl.innerHTML = '<div style="font-size:10px;color:var(--muted)">No double tops, H&amp;S, triangles, or flags matched on current window.</div>';
+    } else {
+      listEl.innerHTML = patterns.slice(0, 4).map(p => {
+        const biasColor = p.bias === 'BULLISH' ? 'var(--green)' : (p.bias === 'BEARISH' ? 'var(--red)' : 'var(--muted)');
+        return `<div style="font-size:10px;padding:6px 8px;background:rgba(255,255,255,0.03);border-radius:6px;border-left:2px solid ${biasColor}">
+          <strong>${p.name}</strong> · ${p.bias} · ${Math.round((p.confidence||0)*100)}% · ${p.status}
+          <div style="color:var(--muted);margin-top:2px">${p.description || ''}</div>
+        </div>`;
+      }).join('');
+    }
   }
 }
 
@@ -2499,7 +2540,6 @@ function renderBacktestResults(results, symbol, tf) {
 
 // ── LLM PROVIDER ──────────────────────────────────────────────────────────────
 const LLM_HINTS = {
-  mock:      { text: 'Demo mode — no key needed. Engine runs with simulated AI.', url: '' },
   anthropic: { text: 'Get key → console.anthropic.com', url: 'https://console.anthropic.com/' },
   openai:    { text: 'Get key → platform.openai.com/api-keys', url: 'https://platform.openai.com/api-keys' },
   gemini:    { text: 'Get free key → aistudio.google.com/app/apikey  (free tier: 15 RPM)', url: 'https://aistudio.google.com/app/apikey' },
@@ -2517,9 +2557,9 @@ function onLLMChange() {
       : hint.text || '';
   }
   if (keyEl) {
-    keyEl.placeholder = (prov === 'mock' || prov === 'ollama') ? 'No key needed' : 'Paste API key here';
-    keyEl.disabled = (prov === 'mock' || prov === 'ollama');
-    keyEl.style.opacity = (prov === 'mock' || prov === 'ollama') ? '0.4' : '1';
+    keyEl.placeholder = (prov === 'ollama') ? 'No key needed' : 'Paste API key here';
+    keyEl.disabled = (prov === 'ollama');
+    keyEl.style.opacity = (prov === 'ollama') ? '0.4' : '1';
   }
 }
 
