@@ -1119,10 +1119,10 @@ input[type="range"]::-webkit-slider-thumb {
     </div>
     <div class="topbar-sep"></div>
     <span class="mode-badge paper" id="mode-badge">PAPER</span>
-    <div class="scalp-pill" id="scalp-pill">
+    <div class="scalp-pill" id="swing-pill">
       <div class="scalp-dot"></div>
-      SCALP
-      <span id="scalp-pill-pnl" style="opacity:0.7">$0.00</span>
+      SWING 4H
+      <span id="swing-pill-pnl" style="opacity:0.7">$0.00</span>
     </div>
   </header>
 
@@ -1193,7 +1193,7 @@ input[type="range"]::-webkit-slider-thumb {
   <main id="main">
     <div id="tabs">
       <button class="tab-btn active" onclick="switchTab('dashboard')">Live Dashboard</button>
-      <button class="tab-btn" onclick="switchTab('scalping')">⚡ Scalping</button>
+      <button class="tab-btn" onclick="switchTab('swing')">📈 Swing (4h)</button>
       <button class="tab-btn" onclick="switchTab('minds')">Agent Minds</button>
       <button class="tab-btn" onclick="switchTab('decisions')">AI Decisions</button>
       <button class="tab-btn" onclick="switchTab('trades')">Trades &amp; Portfolio</button>
@@ -1322,188 +1322,161 @@ input[type="range"]::-webkit-slider-thumb {
         </div>
       </div>
 
-      <!-- SCALPING TAB -->
-      <div class="tab-panel" id="tab-scalping">
+      <!-- SWING TRADING TAB (4h chart patterns) -->
+      <div class="tab-panel" id="tab-swing">
 
-        <!-- Kill-switch banner (shown when active) -->
-        <div class="kill-banner" id="scalp-kill-banner" style="display:none">
+        <div class="kill-banner" id="swing-kill-banner" style="display:none">
           <span class="kill-icon">🛑</span>
           <div>
-            <div style="font-weight:700;margin-bottom:2px">DAILY LOSS LIMIT HIT — Trading Halted</div>
-            <div style="font-size:11px;opacity:0.8" id="scalp-kill-reason">Daily loss limit reached. All new entries are blocked until tomorrow or manual reset.</div>
+            <div style="font-weight:700;margin-bottom:2px">WEEKLY LOSS LIMIT HIT — Trading Halted</div>
+            <div style="font-size:11px;opacity:0.8" id="swing-kill-reason">Weekly loss limit reached.</div>
           </div>
-          <button class="btn-scalp-warn" style="margin-left:auto;padding:6px 12px;font-size:11px" onclick="scalpingResetKill()">Reset</button>
+          <button class="btn-scalp-warn" style="margin-left:auto;padding:6px 12px;font-size:11px" onclick="swingResetKill()">Reset</button>
         </div>
 
-        <!-- Control card -->
         <div class="scalp-hero">
-          <h2>⚡ Intraday Scalping Engine</h2>
-          <p>Rule-based, low-latency scalp signals on 1m–5m crypto candles. Engine auto-selects the best setup each cycle.</p>
+          <h2>📈 Swing Trading Engine — 4h Chart Patterns</h2>
+          <p>Multi-day swing trades on 4h candles. Scans all classical patterns: double tops/bottoms, H&amp;S, triangles, flags, wedges, S/R breakouts, engulfing, hammer, morning/evening star, and more.</p>
 
           <div class="scalp-controls">
             <div class="scalp-field">
               <label>Symbol(s)</label>
-              <input type="text" id="scalp-symbols" value="BTC/USDT" placeholder="BTC/USDT,ETH/USDT">
+              <input type="text" id="swing-symbols" value="BTC/USDT" placeholder="BTC/USDT,ETH/USDT">
             </div>
             <div class="scalp-field">
-              <label>Timeframe Mode</label>
-              <select id="scalp-tf-mode" onchange="onTFModeChange()">
-                <option value="auto" selected>⚡ Auto-select (recommended)</option>
-                <option value="fixed">Fixed TF</option>
-              </select>
-            </div>
-            <div class="scalp-field" id="scalp-tf-options-wrap">
-              <label>TF Options (auto mode)</label>
-              <input type="text" id="scalp-tf-options" value="1m,3m,5m" placeholder="1m,3m,5m">
-            </div>
-            <div class="scalp-field" id="scalp-tf-fixed-wrap" style="display:none">
-              <label>Fixed Timeframe</label>
-              <select id="scalp-tf">
-                <option value="1m">1m</option>
-                <option value="3m">3m</option>
-                <option value="5m" selected>5m</option>
-                <option value="15m">15m</option>
-              </select>
-            </div>
-            <div class="scalp-field" id="scalp-noise-wrap">
-              <label>Noise Filter (ATR/price %)</label>
-              <input type="number" id="scalp-noise" value="1.5" min="0.5" max="5" step="0.1" title="Skip a TF if its ATR/price exceeds this % — too choppy">
+              <label>Timeframe</label>
+              <input type="text" value="4h" disabled style="opacity:0.7">
             </div>
             <div class="scalp-field">
               <label>Account Size (USDT)</label>
-              <input type="number" id="scalp-account" value="1000" min="50" step="50">
+              <input type="number" id="swing-account" value="1000" min="50" step="50">
             </div>
             <div class="scalp-field">
-              <label>Max Daily Loss %</label>
-              <input type="number" id="scalp-daily-loss" value="3" min="0.5" max="10" step="0.5">
+              <label>Max Weekly Loss %</label>
+              <input type="number" id="swing-weekly-loss" value="5" min="1" max="15" step="0.5">
             </div>
             <div class="scalp-field">
               <label>Risk / Trade %</label>
-              <input type="number" id="scalp-risk-pt" value="0.5" min="0.1" max="2" step="0.1">
+              <input type="number" id="swing-risk-pt" value="1" min="0.5" max="3" step="0.1">
             </div>
             <div class="scalp-field">
-              <label>Max Trades / Day</label>
-              <input type="number" id="scalp-max-trades" value="20" min="1" max="100">
+              <label>Max Trades / Week</label>
+              <input type="number" id="swing-max-trades" value="5" min="1" max="20">
             </div>
             <div class="scalp-field">
-              <label>Cycle Interval (sec)</label>
-              <input type="number" id="scalp-interval" value="30" min="15" step="5">
+              <label>Check Interval (sec)</label>
+              <input type="number" id="swing-interval" value="3600" min="300" step="300" title="How often to scan 4h patterns (3600 = 1 hour)">
             </div>
             <div class="scalp-field">
               <label>Min Confidence</label>
-              <input type="number" id="scalp-conf" value="0.55" min="0.4" max="0.95" step="0.05">
+              <input type="number" id="swing-conf" value="0.58" min="0.45" max="0.95" step="0.01">
             </div>
             <div class="scalp-field">
-              <label>Min SL Floor % (ATR overrides)</label>
-              <input type="number" id="scalp-sl" value="0.2" min="0.05" max="2" step="0.05" title="ATR-based SL is always used; this is the minimum floor.">
+              <label>Min SL Floor %</label>
+              <input type="number" id="swing-sl" value="1.5" min="0.5" max="5" step="0.1">
             </div>
             <div class="scalp-field">
               <label>TP Multiplier (RR)</label>
-              <input type="number" id="scalp-tp-mult" value="1.5" min="1" max="5" step="0.1" title="Take-profit = actual SL distance × this. E.g. 1.5 = 1:1.5 RR">
+              <input type="number" id="swing-tp-mult" value="3" min="1.5" max="6" step="0.1">
             </div>
           </div>
 
           <div class="scalp-btns">
-            <button class="btn-scalp-on" id="scalp-enable-btn" onclick="enableScalping()">▶ Enable Scalping</button>
-            <button class="btn-scalp-off" id="scalp-disable-btn" onclick="disableScalping()">■ Disable Scalping</button>
-            <button class="btn-scalp-warn" onclick="scalpingCloseAll()">⬛ Close All Positions</button>
-            <button class="btn-scalp-warn" onclick="fetchScalpingChecklist()">📋 EOD Checklist</button>
+            <button class="btn-scalp-on" id="swing-enable-btn" onclick="enableSwing()">▶ Enable Swing Trading</button>
+            <button class="btn-scalp-off" id="swing-disable-btn" onclick="disableSwing()">■ Disable Swing</button>
+            <button class="btn-scalp-warn" onclick="swingCloseAll()">⬛ Close All Positions</button>
+            <button class="btn-scalp-warn" onclick="fetchSwingPatterns()">🔍 Scan 4h Patterns Now</button>
+            <button class="btn-scalp-warn" onclick="fetchSwingChecklist()">📋 Weekly Review</button>
           </div>
         </div>
 
-        <!-- Daily risk status -->
-        <div class="metrics-row" id="scalp-metrics-row">
+        <div class="metrics-row" id="swing-metrics-row">
           <div class="metric-card">
-            <div class="metric-label">Today's P&amp;L</div>
-            <div class="metric-value neu" id="scalp-daily-pnl">$0.00</div>
-            <div class="metric-sub" id="scalp-daily-pnl-pct">0.000%</div>
+            <div class="metric-label">This Week P&amp;L</div>
+            <div class="metric-value neu" id="swing-weekly-pnl">$0.00</div>
+            <div class="metric-sub" id="swing-weekly-pnl-pct">0.000%</div>
           </div>
           <div class="metric-card">
-            <div class="metric-label">Trades Today</div>
-            <div class="metric-value" id="scalp-trades-today">0</div>
-            <div class="metric-sub" id="scalp-trades-rem">20 remaining</div>
+            <div class="metric-label">Trades This Week</div>
+            <div class="metric-value" id="swing-trades-week">0</div>
+            <div class="metric-sub" id="swing-trades-rem">5 remaining</div>
           </div>
           <div class="metric-card">
-            <div class="metric-label">Win Rate Today</div>
-            <div class="metric-value" id="scalp-wr-today">—</div>
-            <div class="metric-sub" id="scalp-wr-sub">0W / 0L</div>
+            <div class="metric-label">Win Rate</div>
+            <div class="metric-value" id="swing-wr-week">—</div>
+            <div class="metric-sub" id="swing-wr-sub">0W / 0L</div>
           </div>
           <div class="metric-card">
             <div class="metric-label">Risk Budget Left</div>
-            <div class="metric-value pos" id="scalp-budget-left">$30.00</div>
-            <div class="metric-sub" id="scalp-budget-limit">Limit: $30.00</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">Session P&amp;L</div>
-            <div class="metric-value neu" id="scalp-session-pnl">$0.00</div>
-            <div class="metric-sub" id="scalp-session-trades">0 session trades</div>
+            <div class="metric-value pos" id="swing-budget-left">$50.00</div>
+            <div class="metric-sub" id="swing-budget-limit">Limit: $50.00</div>
           </div>
           <div class="metric-card">
             <div class="metric-label">Status</div>
-            <div class="metric-value" id="scalp-status-val" style="font-size:14px">INACTIVE</div>
-            <div class="metric-sub" id="scalp-status-sub">—</div>
+            <div class="metric-value" id="swing-status-val" style="font-size:14px">INACTIVE</div>
+            <div class="metric-sub" id="swing-status-sub">—</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">4h Patterns Found</div>
+            <div class="metric-value" id="swing-patterns-count">—</div>
+            <div class="metric-sub" id="swing-patterns-sub">Scan to detect</div>
           </div>
         </div>
 
-        <!-- Daily loss budget bar -->
         <div class="budget-bar-wrap">
           <div class="budget-bar-labels">
-            <span style="font-size:11px;font-weight:700;color:var(--text)">Daily Loss Budget</span>
-            <span style="font-family:var(--font-mono);font-size:11px" id="scalp-bar-label">0% used of 3% limit</span>
+            <span style="font-size:11px;font-weight:700;color:var(--text)">Weekly Loss Budget</span>
+            <span style="font-family:var(--font-mono);font-size:11px" id="swing-bar-label">0% used of 5% limit</span>
           </div>
           <div class="budget-bar-bg">
-            <div class="budget-bar-fill" id="scalp-bar-fill" style="width:0%"></div>
-          </div>
-          <div class="budget-bar-sub">
-            <span>$0 used</span>
-            <span id="scalp-bar-right">$30 limit</span>
+            <div class="budget-bar-fill" id="swing-bar-fill" style="width:0%"></div>
           </div>
         </div>
 
-        <!-- Setup breakdown -->
         <div class="panel-header">
-          <span class="panel-title">Setup Breakdown — Today</span>
-          <button class="btn-sm btn-sm-promote" style="font-size:10px" onclick="fetchScalpingStatus()">↻ Refresh</button>
+          <span class="panel-title">Live 4h Pattern Scan</span>
+          <button class="btn-sm btn-sm-promote" style="font-size:10px" onclick="fetchSwingPatterns()">↻ Rescan</button>
         </div>
-        <div class="setup-grid" id="scalp-setup-grid">
-          <div class="setup-card"><div class="setup-name">Momentum Breakout</div><div class="setup-count" id="sc-momentum">0</div><div class="setup-pnl neu" id="sc-momentum-pnl">$0.00</div></div>
-          <div class="setup-card"><div class="setup-name">EMA Pullback</div><div class="setup-count" id="sc-ema">0</div><div class="setup-pnl neu" id="sc-ema-pnl">$0.00</div></div>
-          <div class="setup-card"><div class="setup-name">VWAP Reversion</div><div class="setup-count" id="sc-vwap">0</div><div class="setup-pnl neu" id="sc-vwap-pnl">$0.00</div></div>
-          <div class="setup-card"><div class="setup-name">RSI / BB Extreme</div><div class="setup-count" id="sc-rsi">0</div><div class="setup-pnl neu" id="sc-rsi-pnl">$0.00</div></div>
-        </div>
-
-        <!-- Today's trades -->
-        <div class="panel-header">
-          <span class="panel-title">Today's Scalp Trades</span>
-          <span class="panel-badge" id="scalp-trades-badge">0 trades</span>
-        </div>
-        <div class="table-card">
+        <div class="table-card" style="margin-bottom:14px">
           <table class="data-table">
             <thead><tr>
-              <th>ID</th><th>Symbol</th><th>Side</th><th>Setup</th><th>Entry</th><th>Exit</th><th>P&amp;L</th><th>Status</th>
+              <th>Pattern</th><th>Signal</th><th>Score</th><th>Confidence</th><th>Reasoning</th>
             </tr></thead>
-            <tbody id="scalp-trades-body">
-              <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:16px">No scalp trades today — enable scalping above</td></tr>
+            <tbody id="swing-patterns-body">
+              <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:16px">Click "Scan 4h Patterns Now" to detect chart patterns</td></tr>
             </tbody>
           </table>
         </div>
 
-        <!-- EOD checklist panel (shown after fetch) -->
-        <div id="scalp-checklist-wrap" style="display:none">
+        <div class="panel-header">
+          <span class="panel-title">Patterns Monitored on 4h</span>
+        </div>
+        <div class="setup-grid" id="swing-pattern-grid">
+          <div class="setup-card"><div class="setup-name">Double Top/Bottom</div></div>
+          <div class="setup-card"><div class="setup-name">Head &amp; Shoulders</div></div>
+          <div class="setup-card"><div class="setup-name">Triangles</div></div>
+          <div class="setup-card"><div class="setup-name">Bull/Bear Flag</div></div>
+          <div class="setup-card"><div class="setup-name">Rising/Falling Wedge</div></div>
+          <div class="setup-card"><div class="setup-name">S/R Breakout</div></div>
+          <div class="setup-card"><div class="setup-name">Engulfing</div></div>
+          <div class="setup-card"><div class="setup-name">Hammer / Star</div></div>
+        </div>
+
+        <div id="swing-checklist-wrap" style="display:none;margin-top:14px">
           <div class="panel-header">
-            <span class="panel-title">End-of-Day Checklist</span>
-            <span class="panel-badge" id="scalp-verdict-badge">—</span>
-          </div>
-          <div class="metric-card" style="margin-bottom:10px">
-            <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
-              <span style="font-size:22px" id="scalp-verdict-icon">—</span>
-              <span style="font-size:16px;font-weight:800;color:var(--text)" id="scalp-verdict-text">—</span>
-            </div>
-            <div id="scalp-checklist-items" style="display:flex;flex-direction:column;gap:4px"></div>
+            <span class="panel-title">Weekly Review</span>
+            <span class="panel-badge" id="swing-verdict-badge">—</span>
           </div>
           <div class="metric-card">
-            <div class="metric-label" style="margin-bottom:8px">Improvements for Tomorrow</div>
-            <div id="scalp-improvements" style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted);line-height:1.5"></div>
+            <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+              <span style="font-size:22px" id="swing-verdict-icon">—</span>
+              <span style="font-size:16px;font-weight:800;color:var(--text)" id="swing-verdict-text">—</span>
+            </div>
+            <div id="swing-checklist-items" style="display:flex;flex-direction:column;gap:4px"></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label" style="margin-bottom:8px">Improvements</div>
+            <div id="swing-improvements" style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted);line-height:1.5"></div>
           </div>
         </div>
 
@@ -2417,7 +2390,7 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + tab)?.classList.add('active');
   document.querySelectorAll('.tab-btn').forEach((btn, i) => {
-    const tabs = ['dashboard','scalping','minds','decisions','trades','evolution','analytics','backtest','logs'];
+    const tabs = ['dashboard','swing','minds','decisions','trades','evolution','analytics','backtest','logs'];
     if (tabs[i] === tab) btn.classList.add('active');
   });
   currentTab = tab;
@@ -2425,12 +2398,12 @@ function switchTab(tab) {
   if (tab === 'dashboard') renderChart();
   if (tab === 'analytics') { fetchAnalytics(); }
   if (tab === 'minds') { fetchLogs(); }
-  if (tab === 'scalping') { fetchScalpingStatus(); }
+  if (tab === 'swing') { fetchSwingStatus(); fetchSwingPatterns(); }
 }
 
 // Proper tab switching by index
 document.querySelectorAll('.tab-btn').forEach((btn, i) => {
-  const tabs = ['dashboard','scalping','minds','decisions','trades','evolution','analytics','backtest','logs'];
+  const tabs = ['dashboard','swing','minds','decisions','trades','evolution','analytics','backtest','logs'];
   btn.onclick = () => switchTab(tabs[i]);
 });
 
@@ -2718,322 +2691,267 @@ function onLLMChange() {
   }
 }
 
-// ── SCALPING ───────────────────────────────────────────────────────────────────
-let scalpStatus = null;
-let scalpRefreshTimer = null;
-const SCALP_PREF_KEY = 'evotrade.scalping.pref.v1';
+// ── SWING TRADING (4h chart patterns) ─────────────────────────────────────────
+let swingStatus = null;
+let swingRefreshTimer = null;
+const SWING_PREF_KEY = 'evotrade.swing.pref.v1';
 
-function getScalpingFormConfig() {
-  const isAuto = document.getElementById('scalp-tf-mode').value === 'auto';
+function getSwingFormConfig() {
   return {
-    symbols: document.getElementById('scalp-symbols').value.trim() || 'BTC/USDT',
-    timeframe: document.getElementById('scalp-tf').value,
-    account_size: parseFloat(document.getElementById('scalp-account').value) || 1000,
-    max_daily_loss_pct: parseFloat(document.getElementById('scalp-daily-loss').value) / 100 || 0.03,
-    risk_per_trade_pct: parseFloat(document.getElementById('scalp-risk-pt').value) / 100 || 0.005,
-    max_trades_per_day: parseInt(document.getElementById('scalp-max-trades').value) || 20,
-    interval_seconds: parseInt(document.getElementById('scalp-interval').value) || 30,
-    min_confidence: parseFloat(document.getElementById('scalp-conf').value) || 0.55,
-    sl_pct: parseFloat(document.getElementById('scalp-sl').value) / 100 || 0.002,
-    tp_multiplier: parseFloat(document.getElementById('scalp-tp-mult').value) || 1.5,
-    tf_auto: isAuto,
-    tf_options: document.getElementById('scalp-tf-options').value.trim() || '1m,3m,5m',
-    tf_noise_filter: parseFloat(document.getElementById('scalp-noise').value) / 100 || 0.015,
+    symbols: document.getElementById('swing-symbols').value.trim() || 'BTC/USDT',
+    account_size: parseFloat(document.getElementById('swing-account').value) || 1000,
+    max_weekly_loss_pct: parseFloat(document.getElementById('swing-weekly-loss').value) / 100 || 0.05,
+    risk_per_trade_pct: parseFloat(document.getElementById('swing-risk-pt').value) / 100 || 0.01,
+    max_trades_per_week: parseInt(document.getElementById('swing-max-trades').value) || 5,
+    interval_seconds: parseInt(document.getElementById('swing-interval').value) || 3600,
+    min_confidence: parseFloat(document.getElementById('swing-conf').value) || 0.58,
+    sl_pct: parseFloat(document.getElementById('swing-sl').value) / 100 || 0.015,
+    tp_multiplier: parseFloat(document.getElementById('swing-tp-mult').value) || 3,
   };
 }
 
-function persistScalpingPref(enabled, config) {
+function persistSwingPref(enabled, config) {
   try {
-    localStorage.setItem(
-      SCALP_PREF_KEY,
-      JSON.stringify({
-        enabled: !!enabled,
-        config: config || getScalpingFormConfig(),
-        ts: Date.now(),
-      })
-    );
+    localStorage.setItem(SWING_PREF_KEY, JSON.stringify({ enabled: !!enabled, config: config || getSwingFormConfig(), ts: Date.now() }));
   } catch (_) {}
 }
 
-function loadScalpingPref() {
-  try {
-    const raw = localStorage.getItem(SCALP_PREF_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch (_) {
-    return null;
-  }
+function loadSwingPref() {
+  try { const raw = localStorage.getItem(SWING_PREF_KEY); return raw ? JSON.parse(raw) : null; } catch (_) { return null; }
 }
 
-function applyScalpingConfigToForm(cfg) {
+function applySwingConfigToForm(cfg) {
   if (!cfg) return;
-  if (cfg.symbols) document.getElementById('scalp-symbols').value = cfg.symbols;
-  if (cfg.timeframe) document.getElementById('scalp-tf').value = cfg.timeframe;
-  if (cfg.account_size) document.getElementById('scalp-account').value = cfg.account_size;
-  if (cfg.max_daily_loss_pct != null) document.getElementById('scalp-daily-loss').value = (cfg.max_daily_loss_pct * 100).toFixed(2).replace(/\.00$/, '');
-  if (cfg.risk_per_trade_pct != null) document.getElementById('scalp-risk-pt').value = (cfg.risk_per_trade_pct * 100).toFixed(2).replace(/\.00$/, '');
-  if (cfg.max_trades_per_day) document.getElementById('scalp-max-trades').value = cfg.max_trades_per_day;
-  if (cfg.interval_seconds) document.getElementById('scalp-interval').value = cfg.interval_seconds;
-  if (cfg.min_confidence != null) document.getElementById('scalp-conf').value = cfg.min_confidence;
-  if (cfg.sl_pct != null) document.getElementById('scalp-sl').value = (cfg.sl_pct * 100).toFixed(2).replace(/\.00$/, '');
-  if (cfg.tp_multiplier != null) document.getElementById('scalp-tp-mult').value = cfg.tp_multiplier;
-  if (cfg.tf_options) document.getElementById('scalp-tf-options').value = cfg.tf_options;
-  if (cfg.tf_noise_filter != null) document.getElementById('scalp-noise').value = (cfg.tf_noise_filter * 100).toFixed(2).replace(/\.00$/, '');
-  if (cfg.tf_auto != null) {
-    document.getElementById('scalp-tf-mode').value = cfg.tf_auto ? 'auto' : 'fixed';
-  }
-  onTFModeChange();
+  if (cfg.symbols) document.getElementById('swing-symbols').value = cfg.symbols;
+  if (cfg.account_size) document.getElementById('swing-account').value = cfg.account_size;
+  if (cfg.max_weekly_loss_pct != null) document.getElementById('swing-weekly-loss').value = (cfg.max_weekly_loss_pct * 100).toFixed(1).replace(/\.0$/, '');
+  if (cfg.risk_per_trade_pct != null) document.getElementById('swing-risk-pt').value = (cfg.risk_per_trade_pct * 100).toFixed(1).replace(/\.0$/, '');
+  if (cfg.max_trades_per_week) document.getElementById('swing-max-trades').value = cfg.max_trades_per_week;
+  if (cfg.interval_seconds) document.getElementById('swing-interval').value = cfg.interval_seconds;
+  if (cfg.min_confidence) document.getElementById('swing-conf').value = cfg.min_confidence;
+  if (cfg.sl_pct != null) document.getElementById('swing-sl').value = (cfg.sl_pct * 100).toFixed(1).replace(/\.0$/, '');
+  if (cfg.tp_multiplier) document.getElementById('swing-tp-mult').value = cfg.tp_multiplier;
 }
 
-async function bootstrapScalpingPersistence() {
-  const pref = loadScalpingPref();
-  if (pref?.config) applyScalpingConfigToForm(pref.config);
+async function bootstrapSwingPersistence() {
+  const pref = loadSwingPref();
+  if (pref?.config) applySwingConfigToForm(pref.config);
 
   let status = null;
   try {
-    status = await api('/api/scalping/status');
-    scalpStatus = status;
-    renderScalpingStatus(status);
+    status = await api('/api/swing/status');
+    swingStatus = status;
+    renderSwingStatus(status);
   } catch (_) {}
 
-  // If backend is already active, keep polling and sync local preference.
-  if (status?.scalping_mode_active) {
-    startScalpPolling();
-    persistScalpingPref(true, {
-      ...getScalpingFormConfig(),
-      tf_auto: status.tf_auto,
-      tf_options: status.tf_options,
-      tf_noise_filter: status.tf_noise_filter,
-    });
+  if (status?.swing_mode_active) {
+    startSwingPolling();
+    persistSwingPref(true, getSwingFormConfig());
     return;
   }
 
-  // If user previously enabled scalping, re-enable automatically after refresh.
   if (pref?.enabled) {
     try {
-      await enableScalping();
-      toast('Scalping session restored after refresh.', 'info');
+      await enableSwing();
+      toast('Swing session restored after refresh.', 'info');
     } catch (_) {}
   }
 }
 
-function onTFModeChange() {
-  const auto = document.getElementById('scalp-tf-mode').value === 'auto';
-  document.getElementById('scalp-tf-options-wrap').style.display = auto ? '' : 'none';
-  document.getElementById('scalp-tf-fixed-wrap').style.display   = auto ? 'none' : '';
-  document.getElementById('scalp-noise-wrap').style.display      = auto ? '' : 'none';
-}
-
-async function enableScalping() {
-  const body = getScalpingFormConfig();
+async function enableSwing() {
+  const body = getSwingFormConfig();
   try {
-    await api('/api/scalping/enable', 'POST', body);
-    toast('Scalping enabled! Engine is now watching for setups.', 'success');
-    document.getElementById('scalp-pill').classList.add('active');
-    persistScalpingPref(true, body);
-    startScalpPolling();
-    fetchScalpingStatus();
+    await api('/api/swing/enable', 'POST', body);
+    toast('Swing trading enabled! Scanning all chart patterns on 4h.', 'success');
+    document.getElementById('swing-pill').classList.add('active');
+    persistSwingPref(true, body);
+    startSwingPolling();
+    fetchSwingStatus();
+    fetchSwingPatterns();
   } catch(e) { toast('Enable failed: ' + e.message, 'error'); }
 }
 
-async function disableScalping() {
+async function disableSwing() {
   try {
-    await api('/api/scalping/disable', 'POST');
-    toast('Scalping disabled.', 'info');
-    document.getElementById('scalp-pill').classList.remove('active');
-    persistScalpingPref(false, getScalpingFormConfig());
-    stopScalpPolling();
-    fetchScalpingStatus();
+    await api('/api/swing/disable', 'POST');
+    toast('Swing trading disabled.', 'info');
+    document.getElementById('swing-pill').classList.remove('active');
+    persistSwingPref(false, getSwingFormConfig());
+    stopSwingPolling();
+    fetchSwingStatus();
   } catch(e) { toast('Disable failed: ' + e.message, 'error'); }
 }
 
-async function scalpingCloseAll() {
-  if (!confirm('Close ALL open scalp positions at market price?')) return;
+async function swingCloseAll() {
+  if (!confirm('Close ALL open swing positions at market price?')) return;
   try {
-    const r = await api('/api/scalping/close-all', 'POST');
+    const r = await api('/api/swing/close-all', 'POST');
     toast(`Closed ${r.positions_closed} position(s)`, r.positions_closed > 0 ? 'success' : 'info');
-    fetchScalpingStatus();
+    fetchSwingStatus();
     fetchTrades();
   } catch(e) { toast('Close-all failed: ' + e.message, 'error'); }
 }
 
-async function scalpingResetKill() {
-  if (!confirm('Reset the daily kill switch? Only do this after deliberate review.')) return;
+async function swingResetKill() {
+  if (!confirm('Reset the weekly kill switch? Only after deliberate review.')) return;
   try {
-    await api('/api/scalping/reset-kill-switch', 'POST');
-    toast('Kill switch reset. Trade carefully.', 'info');
-    fetchScalpingStatus();
+    await api('/api/swing/reset-kill-switch', 'POST');
+    toast('Kill switch reset.', 'info');
+    fetchSwingStatus();
   } catch(e) { toast(e.message, 'error'); }
 }
 
-async function fetchScalpingStatus() {
+async function fetchSwingStatus() {
   try {
-    const d = await api('/api/scalping/status');
-    scalpStatus = d;
-    renderScalpingStatus(d);
+    const d = await api('/api/swing/status');
+    swingStatus = d;
+    renderSwingStatus(d);
   } catch(e) {}
 }
 
-async function fetchScalpingChecklist() {
+async function fetchSwingPatterns() {
   try {
-    const d = await api('/api/scalping/checklist');
-    renderScalpingChecklist(d);
-    document.getElementById('scalp-checklist-wrap').style.display = 'block';
-    if (currentTab !== 'scalping') switchTab('scalping');
+    const sym = document.getElementById('swing-symbols').value.split(',')[0].trim() || 'BTC/USDT';
+    const d = await api('/api/swing/patterns?symbol=' + encodeURIComponent(sym));
+    renderSwingPatterns(d);
+  } catch(e) { toast('Pattern scan failed: ' + e.message, 'error'); }
+}
+
+async function fetchSwingChecklist() {
+  try {
+    const d = await api('/api/swing/checklist');
+    renderSwingChecklist(d);
+    document.getElementById('swing-checklist-wrap').style.display = 'block';
+    if (currentTab !== 'swing') switchTab('swing');
   } catch(e) { toast('Checklist fetch failed: ' + e.message, 'error'); }
 }
 
-function renderScalpingStatus(d) {
+function renderSwingStatus(d) {
   if (!d) return;
 
-  // Kill banner
-  const killBanner = document.getElementById('scalp-kill-banner');
+  const killBanner = document.getElementById('swing-kill-banner');
   if (killBanner) {
     killBanner.style.display = d.kill_active ? 'flex' : 'none';
     if (d.kill_active) {
-      setText('scalp-kill-reason', `Daily loss: ${d.daily_pnl_usdt.toFixed(2)} USDT (limit: ${d.daily_loss_limit_usdt.toFixed(2)} USDT). All new entries blocked.`);
+      setText('swing-kill-reason', `Weekly loss: ${d.weekly_pnl_usdt.toFixed(2)} USDT (limit: ${d.weekly_loss_limit_usdt.toFixed(2)} USDT).`);
     }
   }
 
-  // Topbar pill
-  const pill = document.getElementById('scalp-pill');
+  const pill = document.getElementById('swing-pill');
   if (pill) {
-    if (d.scalping_mode_active) {
+    if (d.swing_mode_active) {
       pill.classList.add('active');
-      const pnl = d.daily_pnl_usdt || 0;
-      setText('scalp-pill-pnl', `${pnl >= 0 ? '+' : ''}$${fmt(Math.abs(pnl))}`);
+      const pnl = d.weekly_pnl_usdt || 0;
+      setText('swing-pill-pnl', `${pnl >= 0 ? '+' : ''}$${fmt(Math.abs(pnl))}`);
     } else {
       pill.classList.remove('active');
     }
   }
 
-  // Metrics
-  const pnl = d.daily_pnl_usdt || 0;
-  const pnlEl = document.getElementById('scalp-daily-pnl');
+  const pnl = d.weekly_pnl_usdt || 0;
+  const pnlEl = document.getElementById('swing-weekly-pnl');
   if (pnlEl) { pnlEl.textContent = `$${fmt(pnl)}`; pnlEl.className = `metric-value ${pnl > 0 ? 'pos' : pnl < 0 ? 'neg' : 'neu'}`; }
-  setText('scalp-daily-pnl-pct', `${d.daily_pnl_pct >= 0 ? '+' : ''}${(d.daily_pnl_pct||0).toFixed(3)}%`);
+  setText('swing-weekly-pnl-pct', `${d.weekly_pnl_pct >= 0 ? '+' : ''}${(d.weekly_pnl_pct||0).toFixed(3)}%`);
+  setText('swing-trades-week', d.total_trades_week || 0);
+  setText('swing-trades-rem', `${d.trades_remaining_week} remaining`);
+  setText('swing-wr-week', d.win_rate_week > 0 ? `${d.win_rate_week.toFixed(1)}%` : '—');
+  setText('swing-wr-sub', `${d.wins_week||0}W / ${d.losses_week||0}L`);
 
-  setText('scalp-trades-today', d.total_trades_today || 0);
-  setText('scalp-trades-rem', `${d.trades_remaining_today} remaining`);
-  setText('scalp-wr-today', d.win_rate_today > 0 ? `${d.win_rate_today.toFixed(1)}%` : '—');
-  setText('scalp-wr-sub', `${d.wins_today||0}W / ${d.losses_today||0}L`);
+  const budgetLeft = d.weekly_loss_budget_remaining_usdt || 0;
+  const budgetLimit = Math.abs(d.weekly_loss_limit_usdt || 1);
+  const budgetEl = document.getElementById('swing-budget-left');
+  if (budgetEl) { budgetEl.textContent = `$${fmt(budgetLeft)}`; }
+  setText('swing-budget-limit', `Limit: $${fmt(budgetLimit)}`);
 
-  const budgetLeft = d.daily_loss_budget_remaining_usdt || 0;
-  const budgetLimit = Math.abs(d.daily_loss_limit_usdt || 1);
-  const budgetEl = document.getElementById('scalp-budget-left');
-  if (budgetEl) { budgetEl.textContent = `$${fmt(budgetLeft)}`; budgetEl.className = `metric-value ${budgetLeft > budgetLimit * 0.5 ? 'pos' : budgetLeft > budgetLimit * 0.2 ? '' : 'neg'}`; }
-  setText('scalp-budget-limit', `Limit: $${fmt(budgetLimit)}`);
-
-  const sessionPnl = d.session_pnl_usdt || 0;
-  const sessEl = document.getElementById('scalp-session-pnl');
-  if (sessEl) { sessEl.textContent = `$${fmt(sessionPnl)}`; sessEl.className = `metric-value ${sessionPnl > 0 ? 'pos' : sessionPnl < 0 ? 'neg' : 'neu'}`; }
-  setText('scalp-session-trades', `${d.session_trades||0} session trades`);
-
-  const statusVal = document.getElementById('scalp-status-val');
+  const statusVal = document.getElementById('swing-status-val');
   if (statusVal) {
     if (d.kill_active) { statusVal.textContent = 'HALTED'; statusVal.className = 'metric-value neg'; }
-    else if (d.scalping_mode_active) { statusVal.textContent = 'ACTIVE'; statusVal.className = 'metric-value pos'; }
+    else if (d.swing_mode_active) { statusVal.textContent = 'ACTIVE'; statusVal.className = 'metric-value pos'; }
     else { statusVal.textContent = 'INACTIVE'; statusVal.className = 'metric-value'; }
   }
-  const tfLabel = d.tf_auto ? `AUTO(${d.tf_options || '1m,3m,5m'})` : (d.timeframe || '5m');
-  setText('scalp-status-sub', d.scalping_mode_active ? `${tfLabel} · ${d.symbols}` : 'Enable scalping above');
-  // Keep form controls aligned with backend status across refreshes.
-  if (typeof d.tf_auto === 'boolean') {
-    document.getElementById('scalp-tf-mode').value = d.tf_auto ? 'auto' : 'fixed';
-    if (d.tf_options) document.getElementById('scalp-tf-options').value = d.tf_options;
-    if (d.tf_noise_filter != null) document.getElementById('scalp-noise').value = (d.tf_noise_filter * 100).toFixed(2).replace(/\.00$/, '');
-    onTFModeChange();
-  }
-  persistScalpingPref(!!d.scalping_mode_active, getScalpingFormConfig());
+  setText('swing-status-sub', d.swing_mode_active ? `4h patterns · ${d.symbols}` : 'Enable swing above');
+  persistSwingPref(!!d.swing_mode_active, getSwingFormConfig());
 
-  // Budget bar
-  const usedPct = d.daily_loss_used_pct || 0;
-  const barFill = document.getElementById('scalp-bar-fill');
+  const usedPct = d.weekly_loss_used_pct || 0;
+  const barFill = document.getElementById('swing-bar-fill');
   if (barFill) {
     barFill.style.width = `${Math.min(usedPct, 100)}%`;
     barFill.className = `budget-bar-fill ${usedPct > 80 ? 'danger' : usedPct > 50 ? 'warn' : ''}`;
   }
-  setText('scalp-bar-label', `${usedPct.toFixed(1)}% used of ${d.max_daily_loss_pct}% limit`);
-  setText('scalp-bar-right', `$${fmt(budgetLimit)} limit`);
-
-  setText('scalp-trades-badge', `${d.closed_trades_today||0} trades`);
+  setText('swing-bar-label', `${usedPct.toFixed(1)}% used of ${d.max_weekly_loss_pct}% limit`);
 }
 
-function renderScalpingChecklist(d) {
+function renderSwingPatterns(d) {
   if (!d) return;
+  setText('swing-patterns-count', d.count || 0);
+  setText('swing-patterns-sub', d.count ? `${d.symbol} · 4h` : 'No patterns detected');
 
-  const verdictEl = document.getElementById('scalp-verdict-text');
-  const verdictBadge = document.getElementById('scalp-verdict-badge');
-  const iconEl = document.getElementById('scalp-verdict-icon');
-  if (verdictEl) verdictEl.textContent = d.verdict || '—';
-  if (verdictBadge) { verdictBadge.textContent = d.verdict || '—'; verdictBadge.style.color = d.verdict?.includes('GREEN') ? 'var(--green)' : 'var(--red)'; }
+  const tbody = document.getElementById('swing-patterns-body');
+  if (!tbody) return;
+  const patterns = d.patterns?.patterns || [];
+  if (!patterns.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:16px">No chart patterns detected on 4h right now</td></tr>';
+    return;
+  }
+  tbody.innerHTML = patterns.map(p => {
+    const sigClass = p.signal === 'BUY' ? 'pos' : p.signal === 'SELL' ? 'neg' : 'neu';
+    return `<tr>
+      <td style="font-weight:600">${p.name.replace(/_/g, ' ')}</td>
+      <td class="${sigClass}">${p.signal}</td>
+      <td>${p.score}</td>
+      <td>${(p.confidence * 100).toFixed(0)}%</td>
+      <td style="font-size:11px;color:var(--muted)">${p.reasoning}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderSwingChecklist(d) {
+  if (!d) return;
+  setText('swing-verdict-text', d.verdict || '—');
+  const badge = document.getElementById('swing-verdict-badge');
+  if (badge) { badge.textContent = d.verdict || '—'; badge.style.color = d.verdict?.includes('GREEN') ? 'var(--green)' : 'var(--red)'; }
+  const iconEl = document.getElementById('swing-verdict-icon');
   if (iconEl) iconEl.textContent = d.verdict?.includes('GREEN') ? '✅' : d.verdict?.includes('STOP') ? '🛑' : '📉';
 
   const checkMap = {
-    all_positions_closed:     'All positions closed',
-    daily_loss_within_limit:  'Daily loss within limit',
+    weekly_loss_within_limit: 'Weekly loss within limit',
     trade_count_within_limit: 'Trade count within limit',
-    positive_day:             'Positive P&L day',
+    positive_week: 'Positive P&L week',
   };
-  const items = document.getElementById('scalp-checklist-items');
+  const items = document.getElementById('swing-checklist-items');
   if (items && d.checklist) {
     items.innerHTML = Object.entries(checkMap).map(([k, label]) => {
       const pass = d.checklist[k];
-      return `<div class="checklist-item ${pass ? 'pass' : 'fail'}">
-        <span class="check-icon">${pass ? '✅' : '❌'}</span>
-        <span class="check-label">${label}</span>
-      </div>`;
+      return `<div class="checklist-item ${pass ? 'pass' : 'fail'}"><span class="check-icon">${pass ? '✅' : '❌'}</span><span class="check-label">${label}</span></div>`;
     }).join('');
   }
-
-  const impEl = document.getElementById('scalp-improvements');
+  const impEl = document.getElementById('swing-improvements');
   if (impEl && d.improvements) {
-    impEl.innerHTML = d.improvements.map(i => `<div style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--accent)">→</span><span>${i}</span></div>`).join('');
-  }
-
-  // Setup breakdown from summary if available
-  if (d.setups_breakdown) {
-    const setupMap = {
-      momentum_breakout: ['sc-momentum', 'sc-momentum-pnl'],
-      ema_pullback:      ['sc-ema',      'sc-ema-pnl'],
-      vwap_reversion:    ['sc-vwap',     'sc-vwap-pnl'],
-      rsi_bb_extreme:    ['sc-rsi',      'sc-rsi-pnl'],
-    };
-    for (const [key, [countId, pnlId]] of Object.entries(setupMap)) {
-      const info = d.setups_breakdown[key];
-      setText(countId, info ? info.count : 0);
-      const pnl = info ? (info.pnl || 0) : 0;
-      const el = document.getElementById(pnlId);
-      if (el) { el.textContent = `$${fmt(pnl)}`; el.className = `setup-pnl ${pnl > 0 ? 'pos' : pnl < 0 ? 'neg' : 'neu'}`; }
-    }
+    impEl.innerHTML = d.improvements.map(i => `<div style="display:flex;gap:8px"><span style="color:var(--accent)">→</span><span>${i}</span></div>`).join('');
   }
 }
 
-function startScalpPolling() {
-  clearInterval(scalpRefreshTimer);
-  scalpRefreshTimer = setInterval(fetchScalpingStatus, 15000);
+function startSwingPolling() {
+  clearInterval(swingRefreshTimer);
+  swingRefreshTimer = setInterval(fetchSwingStatus, 30000);
 }
-function stopScalpPolling() {
-  clearInterval(scalpRefreshTimer);
+function stopSwingPolling() {
+  clearInterval(swingRefreshTimer);
 }
 
 // ── INIT ───────────────────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
-  onLLMChange(); // set initial hint
-  onTFModeChange();
+  onLLMChange();
   connectWS();
   fetchStatus();
   fetchTrades();
   fetchLogs();
   fetchDecisions();
   fetchIndicators();
-  // Initial chart render after small delay
   setTimeout(() => { renderChart(); renderEquityCurve(); }, 500);
-  // Periodic refresh even without engine (covers AUTO_START_ENGINE without clicking Start)
   setInterval(() => { fetchStatus(); fetchTrades(); fetchLogs(); fetchDecisions(); }, 30000);
-  // Scalping status poll (lighter, every 15s)
-  bootstrapScalpingPersistence();
-  setInterval(fetchScalpingStatus, 15000);
+  bootstrapSwingPersistence();
+  setInterval(fetchSwingStatus, 30000);
 });
 </script>
 </body>

@@ -110,6 +110,30 @@ class Settings(BaseSettings):
     # UTC hour at which end-of-day close-all triggers (0–23); 23 = 11 PM UTC
     SCALPING_EOD_HOUR_UTC: int = 23
 
+    # ── Swing Trading Mode (4h chart patterns) ────────────────────────────────
+    # Multi-day swing engine — scans all chart patterns on 4h candles.
+    SWING_MODE: bool = False
+    SWING_TIMEFRAME: str = "4h"
+    SWING_SYMBOLS: str = "BTC/USDT"
+    SWING_ACCOUNT_SIZE: float = 1000.0
+    # Weekly loss limit (swing holds overnight — no daily EOD close)
+    SWING_MAX_WEEKLY_LOSS_PCT: float = 0.05
+    SWING_RISK_PER_TRADE_PCT: float = 0.01
+    SWING_MAX_POSITION_PCT: float = 0.30
+    SWING_MAX_TRADES_PER_WEEK: int = 5
+    # Check for 4h pattern setups every N seconds (default 1 hour)
+    SWING_INTERVAL_SECONDS: int = 3600
+    # Minimum SL floor (1.5% — wider than scalping)
+    SWING_SL_PCT: float = 0.015
+    SWING_TP_MULTIPLIER: float = 3.0
+    SWING_ATR_SL_MULT: float = 2.0
+    SWING_USE_LLM: bool = True
+    SWING_LLM_FINAL_AUTHORITY: bool = True
+    SWING_SIGNAL_CONFIRMATION_CYCLES: int = 1
+    SWING_MIN_CONFIDENCE: float = 0.58
+    # Bars to fetch for pattern context on 4h (~50 days)
+    SWING_OHLCV_LIMIT: int = 300
+
     # Database
     DB_PATH: str = "data/evotrade.duckdb"
 

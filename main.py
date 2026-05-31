@@ -585,6 +585,121 @@ def scalping_reset_kill():
     return {"status": "kill_switch_reset", "warning": "Trade carefully — limit was hit for a reason"}
 
 
+# ── Swing Trading (4h chart patterns) ───────────────────────────────────────
+
+class SwingConfig(BaseModel):
+    symbols: Optional[str] = None
+    account_size: Optional[float] = None
+    max_weekly_loss_pct: Optional[float] = None
+    risk_per_trade_pct: Optional[float] = None
+    max_trades_per_week: Optional[int] = None
+    interval_seconds: Optional[int] = None
+    sl_pct: Optional[float] = None
+    tp_multiplier: Optional[float] = None
+    min_confidence: Optional[float] = None
+    use_llm: Optional[bool] = None
+
+
+@app.post("/api/swing/enable")
+def enable_swing(config: SwingConfig):
+    """Enable swing trading mode — scans all chart patterns on 4h timeframe."""
+    if config.symbols:
+        settings.SWING_SYMBOLS = config.symbols
+    if config.account_size and config.account_size > 0:
+        settings.SWING_ACCOUNT_SIZE = config.account_size
+    if config.max_weekly_loss_pct is not None:
+        settings.SWING_MAX_WEEKLY_LOSS_PCT = max(0.01, min(config.max_weekly_loss_pct, 0.15))
+    if config.risk_per_trade_pct is not None:
+        settings.SWING_RISK_PER_TRADE_PCT = max(0.005, min(config.risk_per_trade_pct, 0.03))
+    if config.max_trades_per_week and config.max_trades_per_week > 0:
+        settings.SWING_MAX_TRADES_PER_WEEK = config.max_trades_per_week
+    if config.interval_seconds and config.interval_seconds >= 300:
+        settings.SWING_INTERVAL_SECONDS = config.interval_seconds
+    if config.sl_pct is not None:
+        settings.SWING_SL_PCT = max(0.005, min(config.sl_pct, 0.05))
+    if config.tp_multiplier is not None:
+        settings.SWING_TP_MULTIPLIER = max(1.5, min(config.tp_multiplier, 6.0))
+    if config.min_confidence is not None:
+        settings.SWING_MIN_CONFIDENCE = max(0.45, min(config.min_confidence, 0.95))
+    if config.use_llm is not None:
+        settings.SWING_USE_LLM = config.use_llm
+
+    from core.swing_risk import swing_risk
+    swing_risk._weekly_start_equity = settings.SWING_ACCOUNT_SIZE
+
+    engine.enable_swing()
+    return {
+        "status": "swing_enabled",
+        "symbols": settings.SWING_SYMBOLS,
+        "timeframe": "4h",
+        "account_size": settings.SWING_ACCOUNT_SIZE,
+        "max_weekly_loss_pct": settings.SWING_MAX_WEEKLY_LOSS_PCT,
+        "risk_per_trade_pct": settings.SWING_RISK_PER_TRADE_PCT,
+        "max_trades_per_week": settings.SWING_MAX_TRADES_PER_WEEK,
+        "interval_seconds": settings.SWING_INTERVAL_SECONDS,
+        "sl_pct": settings.SWING_SL_PCT,
+        "tp_multiplier": settings.SWING_TP_MULTIPLIER,
+        "min_confidence": settings.SWING_MIN_CONFIDENCE,
+        "patterns_scanned": [
+            "double_top", "double_bottom", "head_shoulders", "inverse_head_shoulders",
+            "ascending_triangle", "descending_triangle", "symmetrical_triangle",
+            "bull_flag", "bear_flag", "rising_wedge", "falling_wedge",
+            "resistance_breakout", "support_breakdown",
+            "hammer", "shooting_star", "bullish_engulfing", "bearish_engulfing",
+            "morning_star", "evening_star",
+        ],
+    }
+
+
+@app.post("/api/swing/disable")
+def disable_swing():
+    engine.disable_swing()
+    return {"status": "swing_disabled"}
+
+
+@app.get("/api/swing/status")
+def get_swing_status():
+    from core.swing_risk import swing_risk
+    status = swing_risk.weekly_status()
+    status["swing_mode_active"] = settings.SWING_MODE
+    status["timeframe"] = "4h"
+    status["symbols"] = settings.SWING_SYMBOLS
+    status["sl_pct"] = settings.SWING_SL_PCT
+    status["tp_multiplier"] = settings.SWING_TP_MULTIPLIER
+    status["llm_enabled"] = settings.SWING_USE_LLM
+    status["llm_provider"] = settings.LLM_PROVIDER
+    status["interval_seconds"] = settings.SWING_INTERVAL_SECONDS
+    return status
+
+
+@app.get("/api/swing/patterns")
+def get_swing_patterns(symbol: Optional[str] = None):
+    """Return all chart patterns detected on 4h for a symbol."""
+    from agents.swing_agent import get_detected_patterns_for_symbol
+    sym = symbol or trading_state.symbol or settings.DEFAULT_SYMBOL
+    return get_detected_patterns_for_symbol(sym)
+
+
+@app.get("/api/swing/checklist")
+def get_swing_checklist():
+    from core.swing_risk import swing_risk
+    return swing_risk.weekly_checklist()
+
+
+@app.post("/api/swing/close-all")
+def swing_close_all():
+    from agents.swing_agent import close_all_swing_positions
+    closed = close_all_swing_positions("Manual close-all via API")
+    return {"status": "closed", "positions_closed": len(closed), "trade_ids": closed}
+
+
+@app.post("/api/swing/reset-kill-switch")
+def swing_reset_kill():
+    from core.swing_risk import swing_risk
+    swing_risk.reset_kill_switch()
+    return {"status": "kill_switch_reset", "warning": "Weekly limit was hit — trade carefully"}
+
+
 # ── Health ────────────────────────────────────────────────────────────────────
 @app.get("/health")
 def health():

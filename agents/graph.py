@@ -123,6 +123,58 @@ def node_scalping_decision(state: TradingGraphState) -> TradingGraphState:
         return {**state, "error": f"ScalpingAgent failed: {e}", "should_execute": False}
 
 
+def node_swing_decision(state: TradingGraphState) -> TradingGraphState:
+    """Swing decision node — 4h chart pattern analysis."""
+    try:
+        from agents.swing_agent import run_swing_agent
+        from config import settings as _s
+
+        indicators = state.get("indicators", {})
+        if not indicators:
+            return {**state, "error": "No indicator data for swing", "should_execute": False}
+
+        trading_state.add_log("LangGraph", "[Node: SwingAgent] Scanning 4h chart patterns...")
+
+        portfolio_dict = trading_state.to_dashboard_dict()
+        portfolio_dict["open_trades_count"] = len(trading_state.open_trades)
+
+        df = trading_state.last_ohlcv
+        if df is None:
+            return {**state, "error": "No OHLCV frame for swing", "should_execute": False}
+
+        decision = run_swing_agent(
+            symbol=state["symbol"],
+            indicators=indicators,
+            df=df,
+            portfolio_dict=portfolio_dict,
+        )
+
+        drawdown_ok = trading_state.portfolio.drawdown < settings.MAX_DRAWDOWN_KILL
+        signal_ok = decision.signal != TradeSignal.HOLD
+        confidence_ok = decision.confidence >= _s.SWING_MIN_CONFIDENCE
+        should_exec = signal_ok and confidence_ok and drawdown_ok
+
+        return {
+            **state,
+            "decision": {
+                "id":          decision.id,
+                "signal":      decision.signal.value,
+                "confidence":  decision.confidence,
+                "size_usdt":   decision.size_usdt,
+                "entry_price": decision.entry_price,
+                "stop_loss":   decision.stop_loss,
+                "take_profit": decision.take_profit,
+                "reasoning":   decision.reasoning,
+            },
+            "should_execute": should_exec,
+            "awaiting_approval": False,
+            "completed_nodes": state.get("completed_nodes", []) + ["swing_agent"],
+        }
+    except Exception as e:
+        trading_state.add_log("LangGraph", f"[Node: SwingAgent] Error: {e}", level="error")
+        return {**state, "error": f"SwingAgent failed: {e}", "should_execute": False}
+
+
 def node_make_decision(state: TradingGraphState) -> TradingGraphState:
     try:
         indicators = state.get("indicators", {})
@@ -246,7 +298,7 @@ def route_after_decision(state: TradingGraphState) -> str:
 
 # ── Build graph ───────────────────────────────────────────────────────────────
 
-def build_trading_graph(scalping: bool = False):
+def build_trading_graph(scalping: bool = False, swing: bool = False):
     if not LANGGRAPH_AVAILABLE:
         return None
     g = StateGraph(TradingGraphState)
@@ -256,7 +308,15 @@ def build_trading_graph(scalping: bool = False):
     g.add_node("finalize",       node_finalize)
     g.set_entry_point("data_agent")
 
-    if scalping:
+    if swing:
+        g.add_node("swing_agent", node_swing_decision)
+        g.add_edge("data_agent", "swing_agent")
+        g.add_conditional_edges(
+            "swing_agent",
+            route_after_decision,
+            {"execute": "execute", "monitor": "monitor"},
+        )
+    elif scalping:
         # Scalping graph: skip news/LLM, go straight to rule-based scalping decision
         g.add_node("scalping_agent", node_scalping_decision)
         g.add_edge("data_agent", "scalping_agent")
@@ -285,17 +345,23 @@ def build_trading_graph(scalping: bool = False):
 
 _compiled_graph = None
 _compiled_scalping_graph = None
+_compiled_swing_graph = None
 
 
 def run_langgraph_cycle(symbol: str, timeframe: str, cycle_id: str) -> Dict[str, Any]:
-    global _compiled_graph, _compiled_scalping_graph
+    global _compiled_graph, _compiled_scalping_graph, _compiled_swing_graph
 
     scalping_mode = settings.SCALPING_MODE
+    swing_mode = settings.SWING_MODE
 
     if not LANGGRAPH_AVAILABLE:
         return _fallback_cycle(symbol, timeframe, cycle_id)
 
-    if scalping_mode:
+    if swing_mode:
+        if _compiled_swing_graph is None:
+            _compiled_swing_graph = build_trading_graph(swing=True)
+        graph = _compiled_swing_graph
+    elif scalping_mode:
         if _compiled_scalping_graph is None:
             _compiled_scalping_graph = build_trading_graph(scalping=True)
         graph = _compiled_scalping_graph
@@ -324,7 +390,12 @@ def run_langgraph_cycle(symbol: str, timeframe: str, cycle_id: str) -> Dict[str,
     }
 
     try:
-        mode_tag = "SCALPING" if scalping_mode else "standard"
+        if swing_mode:
+            mode_tag = "SWING-4H"
+        elif scalping_mode:
+            mode_tag = "SCALPING"
+        else:
+            mode_tag = "standard"
         trading_state.add_log("LangGraph", f"Starting {mode_tag} graph: {symbol} [{timeframe}]")
         return graph.invoke(initial)
     except Exception as e:
