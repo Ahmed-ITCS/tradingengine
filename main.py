@@ -117,7 +117,7 @@ async def lifespan(app: FastAPI):
         except asyncio.CancelledError:
             pass
     try:
-        engine.stop()
+        engine.stop(final=True)
     except Exception:
         pass
     logger.info("EvoTrade shutdown complete")

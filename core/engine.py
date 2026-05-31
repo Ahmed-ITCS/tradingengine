@@ -25,32 +25,59 @@ class TradingEngine:
     """Drives the LangGraph pipeline on a configurable schedule."""
 
     def __init__(self):
-        self._scheduler = BackgroundScheduler(daemon=False)
+        self._scheduler: BackgroundScheduler | None = None
         self._running = False
         self._cycle_lock = threading.Lock()
 
+    def _new_scheduler(self) -> BackgroundScheduler:
+        """Create a fresh scheduler (APScheduler cannot restart after shutdown)."""
+        return BackgroundScheduler(daemon=False)
+
+    def _ensure_scheduler(self) -> BackgroundScheduler:
+        if self._scheduler is None:
+            self._scheduler = self._new_scheduler()
+            return self._scheduler
+        if not self._scheduler.running:
+            # APScheduler cannot reuse an executor after shutdown().
+            try:
+                self._scheduler.shutdown(wait=False)
+            except Exception:
+                pass
+            self._scheduler = self._new_scheduler()
+        return self._scheduler
+
+    def _register_jobs(self, scheduler: BackgroundScheduler) -> None:
+        scheduler.add_job(
+            self._trading_cycle,
+            trigger=IntervalTrigger(seconds=settings.ENGINE_INTERVAL_SECONDS),
+            id="trading_cycle",
+            replace_existing=True,
+            max_instances=1,
+            coalesce=True,
+        )
+        scheduler.add_job(
+            self._evolution_cycle,
+            trigger=IntervalTrigger(hours=settings.EVOLUTION_INTERVAL_HOURS),
+            id="evolution_cycle",
+            replace_existing=True,
+            max_instances=1,
+        )
+
     def start(self):
-        if trading_state.status == EngineStatus.RUNNING:
+        if trading_state.status == EngineStatus.RUNNING and self._running:
             trading_state.add_log("Engine", "Already running", level="warn")
             return
+
+        scheduler = self._ensure_scheduler()
 
         trading_state.status = EngineStatus.RUNNING
         trading_state.paper_trading = settings.PAPER_TRADING
         self._running = True
 
-        self._scheduler.add_job(
-            self._trading_cycle,
-            trigger=IntervalTrigger(seconds=settings.ENGINE_INTERVAL_SECONDS),
-            id="trading_cycle", replace_existing=True, max_instances=1, coalesce=True,
-        )
-        self._scheduler.add_job(
-            self._evolution_cycle,
-            trigger=IntervalTrigger(hours=settings.EVOLUTION_INTERVAL_HOURS),
-            id="evolution_cycle", replace_existing=True, max_instances=1,
-        )
+        self._register_jobs(scheduler)
 
-        if not self._scheduler.running:
-            self._scheduler.start()
+        if not scheduler.running:
+            scheduler.start()
 
         mode = "PAPER" if settings.PAPER_TRADING else ("TESTNET" if settings.USE_TESTNET else "LIVE")
         trading_state.add_log(
@@ -62,15 +89,29 @@ class TradingEngine:
 
         threading.Thread(target=self._trading_cycle, daemon=True, name="initial_cycle").start()
 
-    def stop(self):
+    def stop(self, *, final: bool = False):
+        """Pause trading. Use final=True only on process shutdown."""
         self._running = False
         trading_state.status = EngineStatus.STOPPED
-        if self._scheduler.running:
+
+        scheduler = self._scheduler
+        if scheduler is None:
+            trading_state.add_log("Engine", "⏹️ Engine stopped", level="warn")
+            return
+
+        try:
+            scheduler.remove_all_jobs()
+        except Exception as e:
+            logger.debug("remove_all_jobs: %s", e)
+
+        if final:
             try:
-                self._scheduler.remove_all_jobs()
-                self._scheduler.shutdown(wait=False)
-            except Exception:
-                pass
+                if scheduler.running:
+                    scheduler.shutdown(wait=True)
+            except Exception as e:
+                logger.debug("scheduler shutdown: %s", e)
+            self._scheduler = None
+
         trading_state.add_log("Engine", "⏹️ Engine stopped", level="warn")
 
     def trigger_evolution(self):
